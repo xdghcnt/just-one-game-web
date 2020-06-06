@@ -48,7 +48,8 @@ function init(wsServer, path) {
                     time: null,
                     paused: true,
                     playerAvatars: {},
-                    playerLiked: null
+                    playerLiked: null,
+                    playerWin: null
                 },
                 state = {
                     closedHints: {},
@@ -170,19 +171,22 @@ function init(wsServer, path) {
                 startRound = (initial) => {
                     room.readyPlayers.clear();
                     if (room.players.size >= PLAYERS_MIN) {
-                        if (!initial)
-                            room.master = getNextPlayer();
-                        room.readyPlayers.add(room.master);
-                        room.phase = 1;
-                        room.hints = {};
-                        room.bannedHints = {};
-                        state.closedHints = {};
-                        room.playerHints.clear();
-                        room.word = state.closedWord = room.guessedWord = null;
-                        state.closedWord = shuffleArray(defaultWords[room.wordsLevel])[0];
-                        startTimer();
-                        update();
-                        updatePlayerState();
+                        checkScores();
+                        if (!room.playerWin) {
+                            if (!initial)
+                                room.master = getNextPlayer();
+                            room.readyPlayers.add(room.master);
+                            room.phase = 1;
+                            room.hints = {};
+                            room.bannedHints = {};
+                            state.closedHints = {};
+                            room.playerHints.clear();
+                            room.word = state.closedWord = room.guessedWord = null;
+                            state.closedWord = shuffleArray(defaultWords[room.wordsLevel])[0];
+                            startTimer();
+                            update();
+                            updatePlayerState();
+                        }
                     } else {
                         room.phase = 0;
                         room.teamsLocked = false;
@@ -229,6 +233,16 @@ function init(wsServer, path) {
                         room.spectators.add(playerId);
                     if (room.phase !== 0 && room.players.size < PLAYERS_MIN)
                         stopGame();
+                },
+                checkScores = () => {
+                    const scores = [...room.players].map(playerId => room.playerScores[playerId] || 0).sort((a, b) => a - b).reverse();
+                    if (scores[0] > scores[1]) {
+                        room.playerLeader = [...room.players].filter(playerId => room.playerScores[playerId] === scores[0])[0];
+                        if (scores[0] >= room.goal)
+                            room.playerWin = room.playerLeader;
+                    }
+                    if (room.playerWin)
+                        endGame();
                 },
                 userJoin = (data) => {
                     const user = data.userId;
@@ -303,10 +317,11 @@ function init(wsServer, path) {
                     }
                 },
                 "set-like": (user, likedUser) => {
-                    if (room.phase === 4 && !room.likedUser) {
+                    if (room.phase === 4 && !room.playerLiked) {
                         room.playerLiked = likedUser;
                         room.playerScores[likedUser] = room.playerScores[likedUser] || 0;
                         room.playerScores[likedUser] += 3;
+                        checkScores();
                         update();
                     }
                 },
