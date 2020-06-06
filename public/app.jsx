@@ -530,12 +530,12 @@ class Game extends React.Component {
                                                                                   defaultValue={this.state.revealTime}
                                                                                   min="0"
                                                                                   onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                                      && this.handleChangeParam(evt.target.valueAsNumber, "wordsLevel")}
+                                                                                      && this.handleChangeParam(evt.target.valueAsNumber, "revealTime")}
                                                 />) : (<span className="value">{this.state.revealTime}</span>)}
                                             </div>
                                             <div className="set-words-level"><i title="words level"
                                                                                 className="material-icons">school</i>
-                                                {(isHost && !inProcess) ? (<input id="reveal-time"
+                                                {(isHost && !inProcess) ? (<input id="words-level"
                                                                                   type="number"
                                                                                   defaultValue={this.state.wordsLevel}
                                                                                   min="1"
