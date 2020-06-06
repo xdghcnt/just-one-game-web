@@ -318,6 +318,8 @@ function init(wsServer, path) {
                         room.paused = !room.paused;
                         if (room.phase === 0)
                             startGame();
+                        else if (!room.paused)
+                            startTimer();
                     }
                     update();
                 },
