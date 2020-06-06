@@ -47,7 +47,8 @@ function init(wsServer, path) {
                     wordsLevel: 1,
                     time: null,
                     paused: true,
-                    playerAvatars: {}
+                    playerAvatars: {},
+                    playerLiked: null
                 },
                 state = {
                     closedHints: {},
@@ -130,7 +131,7 @@ function init(wsServer, path) {
                         room.paused = false;
                         room.teamsLocked = true;
                         clearInterval(interval);
-                        startRound();
+                        startRound(true);
                     } else {
                         room.paused = true;
                         room.teamsLocked = false;
@@ -153,7 +154,6 @@ function init(wsServer, path) {
                     room.word = state.closedWord;
                     room.hints = state.closedHints;
                     room.readyPlayers.clear();
-                    room.master = getNextPlayer();
                     startTimer();
                     update();
                     updatePlayerState();
@@ -167,9 +167,11 @@ function init(wsServer, path) {
                     update();
                     updatePlayerState();
                 },
-                startRound = () => {
+                startRound = (initial) => {
                     room.readyPlayers.clear();
                     if (room.players.size >= PLAYERS_MIN) {
+                        if (!initial)
+                            room.master = getNextPlayer();
                         room.readyPlayers.add(room.master);
                         room.phase = 1;
                         room.hints = {};
@@ -201,10 +203,16 @@ function init(wsServer, path) {
                     Object.keys(state.closedHints).forEach((playerId) => {
                         if (!room.bannedHints[playerId])
                             room.hints[playerId] = state.closedHints[playerId];
-                        else
+                        else {
                             room.playerHints.delete(playerId);
+                            room.playerScores[playerId] = room.playerScores[playerId] || 0;
+                            room.playerScores[playerId] -= 1;
+                        }
                     });
-                    startTimer();
+                    if (room.playerHints.size === 0)
+                        endRound();
+                    else
+                        startTimer();
                     update();
                     updatePlayerState();
                 },
@@ -294,9 +302,21 @@ function init(wsServer, path) {
                         update();
                     }
                 },
+                "set-like": (user, likedUser) => {
+                    if (room.phase === 4 && !room.likedUser) {
+                        room.playerLiked = likedUser;
+                        room.playerScores[likedUser] = room.playerScores[likedUser] || 0;
+                        room.playerScores[likedUser] += 3;
+                        update();
+                    }
+                },
                 "guess-word": (user, word) => {
                     if (room.phase === 3 && room.master === user && word) {
                         room.guessedWord = word;
+                        if (room.guessedWord.toLowerCase() === word.toLowerCase()) {
+                            room.playerScores[room.master] = room.playerScores[room.master] || 0;
+                            room.playerScores[room.master] += 2;
+                        }
                         endRound();
                     }
                 },
@@ -340,13 +360,14 @@ function init(wsServer, path) {
                     }
                     update();
                 },
-                "set-time": (user, type, value) => {
+                "set-param": (user, type, value) => {
                     if (user === room.hostId && ~[
                         "masterTime",
                         "playerTime",
                         "revealTime",
                         "teamTime",
-                        "wordsLevel"].indexOf(type) && (type !== "wordsLevel" || (value <= 4 && value >=1)) && !isNaN(parseInt(value)))
+                        "wordsLevel",
+                        "goal"].indexOf(type) && (type !== "wordsLevel" || (value <= 4 && value >= 1)) && !isNaN(parseInt(value)))
                         room[type] = parseFloat(value);
                     update();
                 },

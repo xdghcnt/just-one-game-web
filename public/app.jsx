@@ -31,6 +31,7 @@ class Player extends React.Component {
                 </div>
                 <div className="player-name-section">
                     <span className="player-name">{data.master === id ? "> " : ""}{data.playerNames[id]}</span>
+                    &nbsp;({data.playerScores[id] || 0})
                     <div className="player-host-controls">
                         {(data.hostId === data.userId && data.userId !== id) ? (
                             <i className="material-icons host-button"
@@ -190,6 +191,7 @@ class Game extends React.Component {
         this.state = {
             inited: false
         };
+        window.hyphenate = createHyphenator(hyphenationPatternsRu);
     }
 
     handleJoinPlayersClick(evt) {
@@ -214,12 +216,8 @@ class Game extends React.Component {
         popup.confirm({content: `Give host ${this.state.playerNames[id]}?`}, (evt) => evt.proceed && this.socket.emit("give-host", id));
     }
 
-    handleChangeTime(value, type) {
-        this.debouncedEmit("set-time", type, value);
-    }
-
-    handleSetGoal(value) {
-        this.debouncedEmit("set-goal", value);
+    handleChangeParam(value, type) {
+        this.debouncedEmit("set-param", type, value);
     }
 
     handleClickChangeName() {
@@ -333,6 +331,10 @@ class Game extends React.Component {
 
     handleClickToggleHintBan(user) {
         this.socket.emit("toggle-hint-ban", user);
+    }
+
+    handleClickSetLike(user) {
+        this.socket.emit("set-like", user);
     }
 
     render() {
@@ -468,16 +470,23 @@ class Game extends React.Component {
                                             banned: data.bannedHints[player]
                                         })}>
                                             <div className="word-box">
-                                                <span>{data.hints[player] || (data.closedHints && data.closedHints[player]) || "xxx"}</span>
+                                                <span>{window.hyphenate(data.hints[player] || (data.closedHints && data.closedHints[player]) || "xxx")}</span>
                                                 <div className="card-votes">
                                                     <div className="player-vote">
-                                                        <Avatar data={data} player={player}/>
+                                                        {data.userId !== data.master || data.playerLiked
+                                                            ? (<Avatar data={data} player={player}/>) : ""}
                                                     </div>
                                                 </div>
                                             </div>
                                             {data.phase === 2 ? (<div className="ban-hint-button"
-                                                                    onClick={() => this.handleClickToggleHintBan(player)}><i
-                                                className="material-icons">warning</i></div>) : ""}
+                                                                      onClick={() => this.handleClickToggleHintBan(player)}>
+                                                <i
+                                                    className="material-icons">warning</i></div>) : ""}
+                                            {data.phase === 4
+                                            && ((data.master === data.userId && data.playerLiked == null) || data.playerLiked === player)
+                                                ? (<div className="ban-hint-button"
+                                                        onClick={() => this.handleClickSetLike(player)}><i
+                                                    className="material-icons">thumb_up</i></div>) : ""}
                                         </div>))}
                                 </div>
                             </div>
@@ -493,7 +502,7 @@ class Game extends React.Component {
                                                                               defaultValue={this.state.playerTime}
                                                                               min="0"
                                                                               onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                                  && this.handleChangeTime(evt.target.valueAsNumber, "playerTime")}
+                                                                                  && this.handleChangeParam(evt.target.valueAsNumber, "playerTime")}
                                             />) : (<span className="value">{this.state.playerTime}</span>)}
                                         </div>
                                         <div className="set-team-time"><i title="team time"
@@ -502,7 +511,7 @@ class Game extends React.Component {
                                                                               type="number"
                                                                               defaultValue={this.state.teamTime} min="0"
                                                                               onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                                  && this.handleChangeTime(evt.target.valueAsNumber, "teamTime")}
+                                                                                  && this.handleChangeParam(evt.target.valueAsNumber, "teamTime")}
                                             />) : (<span className="value">{this.state.teamTime}</span>)}
                                         </div>
                                         <div className="set-master-time"><i title="master time"
@@ -512,7 +521,7 @@ class Game extends React.Component {
                                                                               defaultValue={this.state.masterTime}
                                                                               min="0"
                                                                               onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                                  && this.handleChangeTime(evt.target.valueAsNumber, "masterTime")}
+                                                                                  && this.handleChangeParam(evt.target.valueAsNumber, "masterTime")}
                                             />) : (<span className="value">{this.state.masterTime}</span>)}
                                             <div className="set-reveal-time"><i title="reveal time"
                                                                                 className="material-icons">alarm_on</i>
@@ -521,19 +530,29 @@ class Game extends React.Component {
                                                                                   defaultValue={this.state.revealTime}
                                                                                   min="0"
                                                                                   onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                                      && this.handleChangeTime(evt.target.valueAsNumber, "wordsLevel")}
+                                                                                      && this.handleChangeParam(evt.target.valueAsNumber, "wordsLevel")}
                                                 />) : (<span className="value">{this.state.revealTime}</span>)}
                                             </div>
                                             <div className="set-words-level"><i title="words level"
-                                                                                className="material-icons">alarm_on</i>
+                                                                                className="material-icons">school</i>
                                                 {(isHost && !inProcess) ? (<input id="reveal-time"
                                                                                   type="number"
                                                                                   defaultValue={this.state.wordsLevel}
                                                                                   min="1"
                                                                                   max="4"
                                                                                   onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                                      && this.handleChangeTime(evt.target.valueAsNumber, "wordsLevel")}
+                                                                                      && this.handleChangeParam(evt.target.valueAsNumber, "wordsLevel")}
                                                 />) : (<span className="value">{this.state.wordsLevel}</span>)}
+                                            </div>
+                                            <div className="set-goal"><i title="goal"
+                                                                         className="material-icons">flag</i>
+                                                {(isHost && !inProcess) ? (<input id="goal"
+                                                                                  type="number"
+                                                                                  defaultValue={this.state.goal}
+                                                                                  min="1"
+                                                                                  onChange={evt => !isNaN(evt.target.valueAsNumber)
+                                                                                      && this.handleChangeParam(evt.target.valueAsNumber, "goal")}
+                                                />) : (<span className="value">{this.state.goal}</span>)}
                                             </div>
                                         </div>
                                     </div>
