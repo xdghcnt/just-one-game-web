@@ -374,6 +374,7 @@ function init(wsServer, path) {
                         if (room.players.size === 1)
                             room.master = user;
                         update();
+                        updatePlayerState();
                     }
                 },
                 "spectators-join": (user) => {
@@ -383,6 +384,7 @@ function init(wsServer, path) {
                         room.players.delete(user);
                         room.spectators.add(user);
                         update();
+                        updatePlayerState();
                     }
                 }
             };
