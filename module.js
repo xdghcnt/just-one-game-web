@@ -175,6 +175,7 @@ function init(wsServer, path) {
                         if (!room.playerWin) {
                             if (!initial)
                                 room.master = getNextPlayer();
+                            room.playerLiked = null;
                             room.readyPlayers.add(room.master);
                             room.phase = 1;
                             room.hints = {};
@@ -211,6 +212,8 @@ function init(wsServer, path) {
                             room.playerHints.delete(playerId);
                             room.playerScores[playerId] = room.playerScores[playerId] || 0;
                             room.playerScores[playerId] -= 1;
+                            if (room.playerScores[playerId] < 0)
+                                room.playerScores[playerId] = 0;
                         }
                     });
                     if (room.playerHints.size === 0)

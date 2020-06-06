@@ -388,6 +388,7 @@ class Game extends React.Component {
             }
             if (data.phase === 4)
                 status = `Next round`;
+            const guessed = data.guessedWord && data.word.toLowerCase() === (data.guessedWord || "").toLowerCase();
             return (
                 <div className={cs("game", {timed: this.state.timed})}>
                     <div className={
@@ -414,7 +415,7 @@ class Game extends React.Component {
                                     <div className="command">{(data.word || data.closedWord) ?
                                         `Word is «${data.word || data.closedWord}»` : ""}</div>
                                     <div className="command">{data.phase === 4
-                                    && data.word.toLowerCase() !== (data.guessedWord || "").toLowerCase() ?
+                                    && !guessed ?
                                         `Guess is «${data.guessedWord}»` : ""}
                                     </div>
                                     <div className="status-text">{status}{data.phase === 4 || (data.phase === 2
@@ -478,13 +479,12 @@ class Game extends React.Component {
                                                     </div>
                                                 </div>
                                             </div>
-                                            {data.phase === 2 ? (<div className="ban-hint-button"
+                                            {data.phase === 2 || (data.phase === 4 && data.bannedHints[player]) ? (<div className="ban-hint-button"
                                                                       onClick={() => this.handleClickToggleHintBan(player)}>
-                                                <i
-                                                    className="material-icons">warning</i></div>) : ""}
-                                            {data.phase === 4
-                                            && ((data.master === data.userId && data.playerLiked == null) || data.playerLiked === player)
-                                                ? (<div className="ban-hint-button"
+                                                <i className="material-icons">warning</i></div>) : ""}
+                                            {data.phase === 4 && !data.bannedHints[player]
+                                            && ((data.master === data.userId && data.playerLiked == null && guessed) || data.playerLiked === player)
+                                                ? (<div className="set-like-button"
                                                         onClick={() => this.handleClickSetLike(player)}><i
                                                     className="material-icons">thumb_up</i></div>) : ""}
                                         </div>))}
