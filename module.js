@@ -42,6 +42,7 @@ function init(wsServer, path) {
                     teamTime: 20,
                     masterTime: 30,
                     revealTime: 10,
+                    wordsLevel: 1,
                     time: null,
                     paused: true,
                     playerAvatars: {}
@@ -171,7 +172,7 @@ function init(wsServer, path) {
                         state.closedHints = {};
                         room.playerHints.clear();
                         room.word = state.closedWord = room.guessedWord = null;
-                        state.closedWord = shuffleArray(defaultWords[1])[0];
+                        state.closedWord = shuffleArray(defaultWords[room.wordsLevel])[0];
                         startTimer();
                         update();
                         updatePlayerState();
@@ -335,7 +336,12 @@ function init(wsServer, path) {
                     update();
                 },
                 "set-time": (user, type, value) => {
-                    if (user === room.hostId && ~["masterTime", "votingTime"].indexOf(type) && !isNaN(parseInt(value)))
+                    if (user === room.hostId && ~[
+                        "masterTime",
+                        "playerTime",
+                        "revealTime",
+                        "teamTime",
+                        "wordsLevel"].indexOf(type) && (type === "wordsLevel" || (value <= 4 && value >=1)) && !isNaN(parseInt(value)))
                         room[type] = parseFloat(value);
                     update();
                 },

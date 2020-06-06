@@ -350,12 +350,12 @@ class Game extends React.Component {
             if (data.phase !== 0 && data.timed) {
                 let timeStart = new Date();
                 this.timerTimeout = setTimeout(() => {
-                    if (this.state.timed && !this.state.paused && this.state.phase !== 2) {
+                    if (this.state.timed && !this.state.paused) {
                         let prevTime = this.state.time,
                             time = prevTime - (new Date - timeStart);
                         this.setState(Object.assign({}, this.state, {time: time}));
                         this.updateTimer(time);
-                        if (this.state.phase !== 3 && this.state.timed && time < 6000
+                        if (this.state.phase !== 4 && this.state.timed && time < 6000
                             && ((Math.floor(prevTime / 1000) - Math.floor(time / 1000)) > 0) && !parseInt(localStorage.muteSounds))
                             this.timerSound.play();
                     }
@@ -411,7 +411,8 @@ class Game extends React.Component {
                                         </div>) : ""}
                                     <div className="command">{(data.word || data.closedWord) ?
                                         `Word is «${data.word || data.closedWord}»` : ""}</div>
-                                    <div className="command">{data.phase === 4 && data.word !== data.guessedWord ?
+                                    <div className="command">{data.phase === 4
+                                    && data.word.toLowerCase() !== (data.guessedWord || "").toLowerCase() ?
                                         `Guess is «${data.guessedWord}»` : ""}
                                     </div>
                                     <div className="status-text">{status}{data.phase === 4 || (data.phase === 2
@@ -520,8 +521,19 @@ class Game extends React.Component {
                                                                                   defaultValue={this.state.revealTime}
                                                                                   min="0"
                                                                                   onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                                      && this.handleChangeTime(evt.target.valueAsNumber, "votingTime")}
+                                                                                      && this.handleChangeTime(evt.target.valueAsNumber, "wordsLevel")}
                                                 />) : (<span className="value">{this.state.revealTime}</span>)}
+                                            </div>
+                                            <div className="set-words-level"><i title="words level"
+                                                                                className="material-icons">alarm_on</i>
+                                                {(isHost && !inProcess) ? (<input id="reveal-time"
+                                                                                  type="number"
+                                                                                  defaultValue={this.state.wordsLevel}
+                                                                                  min="1"
+                                                                                  max="4"
+                                                                                  onChange={evt => !isNaN(evt.target.valueAsNumber)
+                                                                                      && this.handleChangeTime(evt.target.valueAsNumber, "wordsLevel")}
+                                                />) : (<span className="value">{this.state.wordsLevel}</span>)}
                                             </div>
                                         </div>
                                     </div>
