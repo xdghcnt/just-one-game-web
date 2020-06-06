@@ -341,7 +341,7 @@ function init(wsServer, path) {
                         "playerTime",
                         "revealTime",
                         "teamTime",
-                        "wordsLevel"].indexOf(type) && (type === "wordsLevel" || (value <= 4 && value >=1)) && !isNaN(parseInt(value)))
+                        "wordsLevel"].indexOf(type) && (type !== "wordsLevel" || (value <= 4 && value >=1)) && !isNaN(parseInt(value)))
                         room[type] = parseFloat(value);
                     update();
                 },
