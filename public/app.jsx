@@ -355,7 +355,7 @@ class Game extends React.Component {
                             time = prevTime - (new Date - timeStart);
                         this.setState(Object.assign({}, this.state, {time: time}));
                         this.updateTimer(time);
-                        if (this.state.phase !== 4 && this.state.timed && time < 6000
+                        if (![2, 4].includes(this.state.phase) && this.state.timed && time < 5000
                             && ((Math.floor(prevTime / 1000) - Math.floor(time / 1000)) > 0) && !parseInt(localStorage.muteSounds))
                             this.timerSound.play();
                     }
@@ -475,9 +475,9 @@ class Game extends React.Component {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="ban-hint-button"
-                                                 onClick={() => this.handleClickToggleHintBan(player)}><i
-                                                className="material-icons">warning</i></div>
+                                            {data.phase === 2 ? (<div className="ban-hint-button"
+                                                                    onClick={() => this.handleClickToggleHintBan(player)}><i
+                                                className="material-icons">warning</i></div>) : ""}
                                         </div>))}
                                 </div>
                             </div>

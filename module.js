@@ -31,6 +31,7 @@ function init(wsServer, path) {
                     players: new JSONSet(),
                     readyPlayers: new JSONSet(),
                     playerHints: new JSONSet(),
+                    playerScores: {},
                     teamsLocked: false,
                     timed: true,
                     word: null,
@@ -42,6 +43,7 @@ function init(wsServer, path) {
                     teamTime: 20,
                     masterTime: 30,
                     revealTime: 10,
+                    goal: 15,
                     wordsLevel: 1,
                     time: null,
                     paused: true,
@@ -145,6 +147,9 @@ function init(wsServer, path) {
                 },
                 endRound = () => {
                     room.phase = 4;
+                    Object.keys(state.closedHints).forEach((player) => {
+                        room.playerHints.add(player);
+                    });
                     room.word = state.closedWord;
                     room.hints = state.closedHints;
                     room.readyPlayers.clear();
@@ -318,8 +323,6 @@ function init(wsServer, path) {
                         room.paused = !room.paused;
                         if (room.phase === 0)
                             startGame();
-                        else if (!room.paused)
-                            startTimer();
                     }
                     update();
                 },
