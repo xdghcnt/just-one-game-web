@@ -59,10 +59,15 @@ function init(wsServer, path) {
                 update = () => send(room.onlinePlayers, "state", room),
                 updatePlayerState = () => {
                     [...room.players].forEach(playerId => {
-                        if (room.onlinePlayers.has(playerId) && room.master !== playerId)
+                        if (room.onlinePlayers.has(playerId) && room.master === playerId)
+                            send(playerId, "player-state", {closedHints: null, closedWord: null});
+                        else if (room.phase !== 1)
                             send(playerId, "player-state", state);
                         else
-                            send(playerId, "player-state", {closedHints: null, closedWord: null});
+                            send(playerId, "player-state", {
+                                closedHints: {[playerId]: state.closedHints[playerId]},
+                                closedWord: state.closedWord
+                            });
                     });
                 },
                 getNextPlayer = () => {
@@ -141,8 +146,6 @@ function init(wsServer, path) {
                     room.phase = 4;
                     room.word = state.closedWord;
                     room.hints = state.closedHints;
-                    state.closedHints = null;
-                    state.closedWord = null;
                     room.readyPlayers.clear();
                     room.master = getNextPlayer();
                     startTimer();
@@ -195,7 +198,6 @@ function init(wsServer, path) {
                         else
                             room.playerHints.delete(playerId);
                     });
-                    state.closedHints = {};
                     startTimer();
                     update();
                     updatePlayerState();
