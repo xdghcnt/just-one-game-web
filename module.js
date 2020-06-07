@@ -97,8 +97,12 @@ function init(wsServer, path) {
                             room.time = room.teamTime * 1000;
                         else if (room.phase === 3)
                             room.time = room.masterTime * 1000;
-                        else if (room.phase === 4)
-                            room.time = room.revealTime * 1000;
+                        else if (room.phase === 4) {
+                            if (room.wordGuessed)
+                                room.time = room.revealTime * 1000;
+                            else
+                                room.time = 10 * 1000;
+                        }
                         let time = new Date();
                         interval = setInterval(() => {
                             if (!room.paused) {
@@ -122,6 +126,10 @@ function init(wsServer, path) {
                                         processInactivity(room.master);
                                         endRound();
                                     } else if (room.phase === 4) {
+                                        if (!room.playerLiked && room.wordGuessed) {
+                                            room.playerScores[room.master] -= 2;
+                                            processInactivity(room.master);
+                                        }
                                         startRound();
                                     }
                                     update();
