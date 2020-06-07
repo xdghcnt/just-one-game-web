@@ -39,10 +39,10 @@ function init(wsServer, path) {
                     hints: {},
                     bannedHints: {},
                     phase: 0,
-                    playerTime: 20,
+                    playerTime: 60,
                     teamTime: 20,
-                    masterTime: 30,
-                    revealTime: 10,
+                    masterTime: 60,
+                    revealTime: 20,
                     goal: 15,
                     wordsLevel: 1,
                     time: null,
@@ -216,6 +216,11 @@ function init(wsServer, path) {
                     room.phase = 2;
                     room.readyPlayers.clear();
                     room.readyPlayers.add(room.master);
+                    const shuffledHints = {};
+                    shuffleArray(Object.keys(state.closedHints)).forEach((player) => {
+                        shuffledHints[player] = state.closedHints[player];
+                    });
+                    state.closedHints = shuffledHints;
                     startTimer();
                     update();
                     updatePlayerState();
