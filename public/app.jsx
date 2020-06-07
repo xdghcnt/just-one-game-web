@@ -417,6 +417,7 @@ class Game extends React.Component {
                                     && !data.wordGuessed ?
                                         `Guess is «${data.guessedWord}»` : ""}
                                     </div>
+                                    {!data.playerWin ? "" : `The winner is ${data.playerNames[data.playerWin]}!`}
                                     <div className="status-text">{status}{data.phase === 4 || (data.phase === 2
                                         && data.players.includes(data.userId) && data.master !== data.userId)
                                         ? (<span>&nbsp;<span
@@ -433,7 +434,10 @@ class Game extends React.Component {
                                         <div className="rtb-clip2">
                                             <div className="rtb-slice2"/>
                                         </div>
-                                        <div className="rtb-content"><Avatar data={data} player={data.master}/></div>
+                                        <div className="rtb-content">
+                                            <Avatar data={data}
+                                                    player={data.playerWin ? data.playerWin : data.master}/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -478,9 +482,10 @@ class Game extends React.Component {
                                                     </div>
                                                 </div>
                                             </div>
-                                            {data.phase === 2 || (data.phase === 4 && data.bannedHints[player]) ? (<div className="ban-hint-button"
-                                                                      onClick={() => this.handleClickToggleHintBan(player)}>
-                                                <i className="material-icons">warning</i></div>) : ""}
+                                            {data.phase === 2 || (data.phase === 4 && data.bannedHints[player]) ? (
+                                                <div className="ban-hint-button"
+                                                     onClick={() => this.handleClickToggleHintBan(player)}>
+                                                    <i className="material-icons">warning</i></div>) : ""}
                                             {data.phase === 4 && !data.bannedHints[player]
                                             && ((data.master === data.userId && data.playerLiked == null && data.wordGuessed) || data.playerLiked === player)
                                                 ? (<div className="set-like-button"
