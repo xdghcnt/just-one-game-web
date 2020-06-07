@@ -333,7 +333,7 @@ function init(wsServer, path) {
                 },
                 "guess-word": (user, word) => {
                     if (room.phase === 3 && room.master === user && word) {
-                        if (room.guessedWord.toLowerCase() === word.toLowerCase()) {
+                        if (state.closedWord.toLowerCase() === word.toLowerCase()) {
                             room.wordGuessed = true;
                             room.playerScores[room.master] = room.playerScores[room.master] || 0;
                             room.playerScores[room.master] += 2;
