@@ -178,7 +178,7 @@ function init(wsServer, path) {
                     room.readyPlayers.clear();
                     if (room.players.size >= PLAYERS_MIN) {
                         checkScores();
-                        if (!room.playerWin) {
+                        if (!room.playerWin || initial) {
                             if (!initial)
                                 room.master = getNextPlayer();
                             room.wordGuessed = null;
