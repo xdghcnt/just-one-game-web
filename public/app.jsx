@@ -486,8 +486,9 @@ class Game extends React.Component {
                                                 <div className="ban-hint-button"
                                                      onClick={() => this.handleClickToggleHintBan(player)}>
                                                     <i className="material-icons">warning</i></div>) : ""}
-                                            {data.phase === 4 && !data.bannedHints[player]
-                                            && ((data.master === data.userId && data.playerLiked == null && data.wordGuessed) || data.playerLiked === player)
+                                            {(data.playerLiked === player
+                                                || (data.phase === 4 && !data.bannedHints[player] && data.master === data.userId
+                                                    && data.playerLiked == null && data.wordGuessed))
                                                 ? (<div className="set-like-button"
                                                         onClick={() => this.handleClickSetLike(player)}><i
                                                     className="material-icons">thumb_up</i></div>) : ""}

@@ -64,16 +64,18 @@ function init(wsServer, path) {
                 send = (target, event, data) => userRegistry.send(target, event, data),
                 update = () => send(room.onlinePlayers, "state", room),
                 updatePlayerState = () => {
-                    [...room.players].forEach(playerId => {
-                        if (room.onlinePlayers.has(playerId) && room.master === playerId)
-                            send(playerId, "player-state", {closedHints: null, closedWord: null});
-                        else if (room.phase !== 1)
-                            send(playerId, "player-state", state);
-                        else
-                            send(playerId, "player-state", {
-                                closedHints: {[playerId]: state.closedHints[playerId]},
-                                closedWord: state.closedWord
-                            });
+                    [...room.onlinePlayers].forEach(playerId => {
+                        if (room.onlinePlayers.has(playerId)) {
+                            if (room.master === playerId)
+                                send(playerId, "player-state", {closedHints: null, closedWord: null});
+                            else if (room.phase !== 1)
+                                send(playerId, "player-state", state);
+                            else
+                                send(playerId, "player-state", {
+                                    closedHints: {[playerId]: state.closedHints[playerId]},
+                                    closedWord: state.closedWord
+                                });
+                        }
                     });
                 },
                 getNextPlayer = () => {
@@ -130,6 +132,7 @@ function init(wsServer, path) {
                 },
                 startGame = () => {
                     if (room.players.size >= PLAYERS_MIN) {
+                        room.playerWin = null;
                         room.playerScores = {};
                         room.paused = false;
                         room.teamsLocked = true;
@@ -243,9 +246,9 @@ function init(wsServer, path) {
                 checkScores = () => {
                     const scores = [...room.players].map(playerId => room.playerScores[playerId] || 0).sort((a, b) => a - b).reverse();
                     if (scores[0] > scores[1]) {
-                        room.playerLeader = [...room.players].filter(playerId => room.playerScores[playerId] === scores[0])[0];
+                        const playerLeader = [...room.players].filter(playerId => room.playerScores[playerId] === scores[0])[0];
                         if (scores[0] >= room.goal)
-                            room.playerWin = room.playerLeader;
+                            room.playerWin = playerLeader;
                     }
                     if (room.playerWin)
                         endGame();
