@@ -129,6 +129,7 @@ function init(wsServer, path) {
                 },
                 startGame = () => {
                     if (room.players.size >= PLAYERS_MIN) {
+                        room.playerScores = {};
                         room.paused = false;
                         room.teamsLocked = true;
                         clearInterval(interval);
@@ -320,7 +321,7 @@ function init(wsServer, path) {
                     }
                 },
                 "set-like": (user, likedUser) => {
-                    if (room.phase === 4 && !room.playerLiked) {
+                    if (room.phase === 4 && !room.playerLiked && room.word.toLowerCase() === (room.guessedWord || "").toLowerCase()) {
                         room.playerLiked = likedUser;
                         room.playerScores[likedUser] = room.playerScores[likedUser] || 0;
                         room.playerScores[likedUser] += 3;
