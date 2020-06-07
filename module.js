@@ -65,7 +65,7 @@ function init(wsServer, path) {
                 update = () => send(room.onlinePlayers, "state", room),
                 updatePlayerState = () => {
                     [...room.onlinePlayers].forEach(playerId => {
-                        if (room.onlinePlayers.has(playerId)) {
+                        if (room.players.has(playerId)) {
                             if (room.master === playerId)
                                 send(playerId, "player-state", {closedHints: null, closedWord: null});
                             else if (room.phase !== 1)
@@ -255,6 +255,8 @@ function init(wsServer, path) {
                         room.spectators.add(playerId);
                     if (room.phase !== 0 && room.players.size < PLAYERS_MIN)
                         stopGame();
+                    update();
+                    updatePlayerState();
                 },
                 checkScores = () => {
                     const scores = [...room.players].map(playerId => room.playerScores[playerId] || 0).sort((a, b) => a - b).reverse();
