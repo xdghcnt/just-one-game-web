@@ -151,7 +151,11 @@ function init(wsServer, path) {
                 endRound = () => {
                     room.phase = 4;
                     Object.keys(state.closedHints).forEach((player) => {
-                        room.playerHints.add(player);
+                        if (room.playerHints.has(player)) {
+                            room.playerScores[player] = room.playerScores[player] || 0;
+                            room.playerScores[player] += 1;
+                        } else
+                            room.playerHints.add(player);
                     });
                     room.word = state.closedWord;
                     room.hints = state.closedHints;
@@ -211,10 +215,6 @@ function init(wsServer, path) {
                             room.hints[playerId] = state.closedHints[playerId];
                         else {
                             room.playerHints.delete(playerId);
-                            room.playerScores[playerId] = room.playerScores[playerId] || 0;
-                            room.playerScores[playerId] -= 1;
-                            if (room.playerScores[playerId] < 0)
-                                room.playerScores[playerId] = 0;
                         }
                     });
                     if (room.playerHints.size === 0)
@@ -331,11 +331,11 @@ function init(wsServer, path) {
                 },
                 "guess-word": (user, word) => {
                     if (room.phase === 3 && room.master === user && word) {
-                        room.guessedWord = word;
                         if (room.guessedWord.toLowerCase() === word.toLowerCase()) {
                             room.playerScores[room.master] = room.playerScores[room.master] || 0;
                             room.playerScores[room.master] += 2;
                         }
+                        room.guessedWord = word;
                         endRound();
                     }
                 },
