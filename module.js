@@ -49,7 +49,8 @@ function init(wsServer, path) {
                     paused: true,
                     playerAvatars: {},
                     playerLiked: null,
-                    playerWin: null
+                    playerWin: null,
+                    wordGuessed: null
                 },
                 state = {
                     closedHints: {},
@@ -151,11 +152,11 @@ function init(wsServer, path) {
                 endRound = () => {
                     room.phase = 4;
                     Object.keys(state.closedHints).forEach((player) => {
-                        if (room.playerHints.has(player)) {
+                        if (room.wordGuessed && room.playerHints.has(player)) {
                             room.playerScores[player] = room.playerScores[player] || 0;
                             room.playerScores[player] += 1;
-                        } else
-                            room.playerHints.add(player);
+                        }
+                        room.playerHints.add(player);
                     });
                     room.word = state.closedWord;
                     room.hints = state.closedHints;
@@ -180,6 +181,7 @@ function init(wsServer, path) {
                         if (!room.playerWin) {
                             if (!initial)
                                 room.master = getNextPlayer();
+                            room.wordGuessed = null;
                             room.playerLiked = null;
                             room.readyPlayers.add(room.master);
                             room.phase = 1;
@@ -321,7 +323,7 @@ function init(wsServer, path) {
                     }
                 },
                 "set-like": (user, likedUser) => {
-                    if (room.phase === 4 && !room.playerLiked && room.word.toLowerCase() === (room.guessedWord || "").toLowerCase()) {
+                    if (room.phase === 4 && !room.playerLiked && room.wordGuessed) {
                         room.playerLiked = likedUser;
                         room.playerScores[likedUser] = room.playerScores[likedUser] || 0;
                         room.playerScores[likedUser] += 3;
@@ -332,6 +334,7 @@ function init(wsServer, path) {
                 "guess-word": (user, word) => {
                     if (room.phase === 3 && room.master === user && word) {
                         if (room.guessedWord.toLowerCase() === word.toLowerCase()) {
+                            room.wordGuessed = true;
                             room.playerScores[room.master] = room.playerScores[room.master] || 0;
                             room.playerScores[room.master] += 2;
                         }
