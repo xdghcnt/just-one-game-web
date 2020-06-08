@@ -345,13 +345,15 @@ function init(wsServer, path) {
                         room.playerLiked = likedUser;
                         room.playerScores[likedUser] = room.playerScores[likedUser] || 0;
                         room.playerScores[likedUser] += 3;
+                        if (room.time >= 5000)
+                            room.time = 5000;
                         checkScores();
                         update();
                     }
                 },
                 "guess-word": (user, word) => {
                     if (room.phase === 3 && room.master === user && word) {
-                        if (state.closedWord.toLowerCase() === word.toLowerCase()) {
+                        if (state.closedWord.toLowerCase() === word.toLowerCase().trim()) {
                             room.wordGuessed = true;
                             room.playerScores[room.master] = room.playerScores[room.master] || 0;
                             room.playerScores[room.master] += 2;
