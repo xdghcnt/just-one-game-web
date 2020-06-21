@@ -50,7 +50,8 @@ function init(wsServer, path) {
                     playerAvatars: {},
                     playerLiked: null,
                     playerWin: null,
-                    wordGuessed: null
+                    wordGuessed: null,
+                    masterKicked: false
                 },
                 state = {
                     closedHints: {},
@@ -82,9 +83,12 @@ function init(wsServer, path) {
                     const nextPlayerIndex = [...room.players].indexOf(room.master) + 1;
                     return [...room.players][(room.players.size === nextPlayerIndex) ? 0 : nextPlayerIndex];
                 },
-                processInactivity = (playerId) => {
-                    if (room.inactivePlayers.has(playerId))
+                processInactivity = (playerId, master) => {
+                    if (room.inactivePlayers.has(playerId)) {
+                        if (master)
+                            room.masterKicked = true;
                         removePlayer(playerId);
+                    }
                     else
                         room.inactivePlayers.add(playerId);
                 },
@@ -123,12 +127,12 @@ function init(wsServer, path) {
                                     } else if (room.phase === 2) {
                                         startMasterPhase();
                                     } else if (room.phase === 3) {
-                                        processInactivity(room.master);
+                                        processInactivity(room.master, true);
                                         endRound();
                                     } else if (room.phase === 4) {
                                         if (!room.playerLiked && room.wordGuessed) {
                                             room.playerScores[room.master] -= 2;
-                                            processInactivity(room.master);
+                                            processInactivity(room.master, true);
                                         }
                                         startRound();
                                     }
@@ -140,6 +144,7 @@ function init(wsServer, path) {
                 },
                 startGame = () => {
                     if (room.players.size >= PLAYERS_MIN) {
+                        room.masterKicked = false;
                         room.playerWin = null;
                         room.playerScores = {};
                         room.paused = false;
@@ -190,8 +195,9 @@ function init(wsServer, path) {
                     if (room.players.size >= PLAYERS_MIN) {
                         checkScores();
                         if (!room.playerWin || initial) {
-                            if (!initial)
+                            if (!initial && !room.masterKicked)
                                 room.master = getNextPlayer();
+                            room.masterKicked = false;
                             room.wordGuessed = null;
                             room.playerLiked = null;
                             room.readyPlayers.add(room.master);
