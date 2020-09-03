@@ -283,8 +283,6 @@ function init(wsServer, path) {
                         endGame();
                 },
                 userJoin = (data) => {
-                    console.log(JSON.stringify(room, null, 2));
-                    console.log('user join before', room.spectators);
                     const user = data.userId;
                     if (!room.playerNames[user])
                     room.spectators.add(user);
@@ -301,10 +299,8 @@ function init(wsServer, path) {
                     }
                     update();
                     updatePlayerState();
-                    console.log('user join after', room.spectators);
                 },
                 userLeft = (user) => {
-                    console.log('user leave before', room.spectators);
                     room.onlinePlayers.delete(user);
                     if (room.spectators.has(user))
                     delete room.playerNames[user];
@@ -312,7 +308,6 @@ function init(wsServer, path) {
                     if (room.onlinePlayers.size === 0)
                     stopGame();
                     update();
-                    console.log('user leave after', room.spectators);
                 },
                 userEvent = (user, event, data) => {
                     this.lastInteraction = new Date();
