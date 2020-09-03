@@ -2,9 +2,10 @@
 //import ReactDOM from "react-dom"
 //import io from "socket.io"
 //import StatusBar from '../statusBar.jsx'
-//import Words from '../words.jsx'
-//import PlayerList from '../player.jsx'
+//import Hints from '../hints.jsx'
+//import PlayerList, SpectatorList from '../player.jsx'
 //import HostControls from '../hostControls.jsx'
+//import AvatarSaver from '../avatar.jsx'
 
 function makeId() {
     let text = "";
@@ -64,7 +65,7 @@ class Game extends React.Component {
                     this.tapSound.play();
             }
             if (this.state.inited && this.state.phase !== 2 && state.phase === 2)
-                this.progressBarUpdate(0, 100);
+                this.phase2StatusBar && this.phase2StatusBar();
             this.setState(Object.assign({
                 userId: this.userId
             }, state));
@@ -127,7 +128,6 @@ class Game extends React.Component {
     }
 
     render() {
-        clearTimeout(this.timerTimeout);
         if (this.state.disconnected) {
             return (<div className="kicked">
                 Disconnected{this.state.disconnectReason ? ` (${this.state.disconnectReason})` : ""}
@@ -146,17 +146,24 @@ class Game extends React.Component {
                             isMaster,
                             teamsLocked: data.teamsLocked
                     })}>
-                        <StatusBar data={data} socket={socket} setTime={this.setTime} />
+                        <SpectatorList data={data} socket={socket} />
+                        <PlayerList data={data} socket={socket}  />
                         <div className="main-row">
-                            <PlayerList
-                                data={data}
-                                socket={socket}
-                                userId={this.userId}
-                                userToken={this.userToken}
+                            <StatusBar data={data} socket={socket}
+                                setTime={(time) => this.setTime(time)}
+                                //Notify about phase 2
+                                //https://stackoverflow.com/questions/37949981/call-child-method-from-parent#45582558
+                                setPhase2={cb => this.phase2StatusBar = cb}
                             />
-                            <Words data={data} socket={socket} />
+                            <Hints data={data} socket={socket} />
                         </div>
-                        <HostControls data={data} socket={socket} refreshState={this.refreshState}/>
+                        <AvatarSaver socket={socket}
+                            userId={this.userId}
+                            userToken={this.userToken}
+                        />
+                        <HostControls data={data} socket={socket}
+                            refreshState={() => this.refreshState()}
+                        />
                         <CommonRoom state={this.state} app={this}/>
                     </div>
                 </div>
