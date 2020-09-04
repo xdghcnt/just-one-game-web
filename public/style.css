@@ -32,10 +32,11 @@ body.dark-theme {
 }
 
 .player.ready {
-   filter: drop-shadow(0px 0px 4px #7ace5a);
+   filter: drop-shadow(0px 0px 3px #7ace5a);
 }
 .player.master {
-   filter: drop-shadow(0px 0px 4px darkcyan);
+   filter: drop-shadow(0px 0px 3px cyan);
+   color: #00bdbd;
 }
 
 
@@ -102,11 +103,10 @@ body.dark-theme {
     align-items: center;
     border-radius: 24px;
     font-family: 'Roboto Condensed', sans-serif;
-    font-size: 15px;
+    font-size: 16px;
 }
 
 .kicked {
-    color: black;
     text-align: center;
     padding: 20px;
     font-size: 18px;
@@ -343,7 +343,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 15px double green;
     box-sizing: border-box;
 }
 
@@ -361,7 +360,7 @@ body {
 }
 
 .dark-theme #timer-progress-bar {
-    background-color: #7ace5a;
+    background-color: #61984f;
 }
 
 .join-button {
@@ -699,7 +698,7 @@ input#command-input {
 }
 
 .ready-button.isReady {
-    color: #7ace5a;
+    color: #61984f;
 }
 
 .ready-button i {
@@ -712,6 +711,14 @@ input#command-input {
     padding: 5px;
 }
 
+.set-like-button {
+    color: #f939a1;
+}
+
+.ban-hint-button i, .set-like-button i {
+    font-size: 30px;
+}
+
 .ban-hint-button .material-icons {
     font-size: 32px;
 }
@@ -720,6 +727,9 @@ input#command-input {
     color: #7c7c7c;
 }
 
+.player.offline .player-name {
+    text-decoration: line-through;
+}
 
 .card {
     height: 140px;
@@ -743,6 +753,7 @@ input#command-input {
     line-height: 40px;
     background: url(/just-one/crumpled.jpg);
     padding: 5px;
+    background-size: 92%;
 }
 
 .card {
@@ -759,23 +770,29 @@ input#command-input {
     font-family: 'Roboto Condensed', sans-serif;
     letter-spacing: 0.5px;
     font-size: 32px;
-    border: 7px solid darkcyan;
+    /*border: 5px solid darkcyan;*/
+    outline: 6px solid darkcyan;
+    outline-offset: -11px;
+    padding: 11px;
 }
 
 .card.closed-word.mistake {
     text-decoration: line-through;
-    border-color: darkred;
+    outline-color: darkred;
     opacity: 0.8;
 }
-
 
 .score-change {
     color: green;
     font-weight: bold;
     font-family: 'Roboto Condensed', sans-serif;
     letter-spacing: 0.5px;
-    font-size: 32px;
+    font-size: 28px;
     padding-left: 6px;
+}
+
+.card.closed-word .score-change {
+    margin: 8px;
 }
 
 .card.banned .ban-hint-button {
@@ -783,9 +800,21 @@ input#command-input {
 }
 
 .card.banned {
-    text-decoration: line-through;
     color: #444;
     opacity: 0.7;
+}
+
+.card .hint-text {
+    position: relative;
+}
+
+.card.banned .hint-text:after {
+    border-top: 2px solid #000;
+    position: absolute;
+    content: "";
+    right: 0;
+    top: 54%;
+    left: 0;
 }
 
 .card .bl-corner {
@@ -793,6 +822,10 @@ input#command-input {
     left: 0px;
     bottom: 0px;
     padding: 5px;
+}
+
+.card.closed-word .bl-corner, .card.closed-word .br-corner {
+    margin: 8px;
 }
 
 .card .br-corner {
@@ -837,4 +870,17 @@ input#command-input {
     font-size: 32px;
     color: #444;
     width: calc(100% - 2 * 5px);
+}
+
+.card .card-logo {
+    background: url(/just-one/logo.png);
+    width: 89px;
+    height: 81px;
+    background-size: cover;
+}
+
+.card.hint .card-logo {
+    width: 80px;
+    height: 80px;
+    background: url(/just-one/logo-paper.png)
 }

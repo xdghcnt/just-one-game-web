@@ -27,19 +27,19 @@ class PlayerHostControls extends React.Component {
             <div className="player-host-controls">
                 {(data.hostId === data.userId && data.userId !== id) ? (
                     <i className="material-icons host-button"
-                    title="Give host"
-                    onClick={(evt) => this.giveHost(id, evt)}>
+                       title="Give host"
+                       onClick={(evt) => this.giveHost(id, evt)}>
                         vpn_key
                     </i>) : ""}
                 {(data.hostId === data.userId && data.userId !== id) ? (
                     <i className="material-icons host-button"
-                    title="Remove"
-                    onClick={(evt) => this.removePlayer(id, evt)}>
+                       title="Remove"
+                       onClick={(evt) => this.removePlayer(id, evt)}>
                         delete_forever
                     </i>) : ""}
                 {(data.hostId === id) ? (
                     <i className="material-icons host-button inactive"
-                    title="Game host">
+                       title="Game host">
                         stars
                     </i>
                 ) : ""}
@@ -54,10 +54,10 @@ class Player extends React.Component {
         document.getElementById("avatar-input").click();
     }
 
-    
+
     render() {
-        const { data, socket, id } = this.props;
-        const { master, readyPlayers } = data;
+        const {data, socket, id} = this.props;
+        const {master, readyPlayers} = data;
         const isReady = readyPlayers.includes(id);
         const isMaster = id === master;
 
@@ -70,8 +70,8 @@ class Player extends React.Component {
             })} onTouchStart={(e) => e.target.focus()}>
                 <div className="player-inner">
                     <div className="player-avatar-section"
-                        onTouchStart={(e) => e.target.focus()}
-                        onClick={() => (id === data.userId) && this.clickSaveAvatar()}>
+                         onTouchStart={(e) => e.target.focus()}
+                         onClick={() => (id === data.userId) && this.clickSaveAvatar()}>
                         <Avatar data={data} player={id}/>
                         {id === data.userId ? (<i className="change-avatar-icon material-icons" title="Change avatar">
                             edit
@@ -82,8 +82,8 @@ class Player extends React.Component {
                             {data.playerNames[id]}
                         </span>
                         &nbsp;
-                        <PlayerHostControls id={id} data={data} socket={socket} />
-                        <span className="spacer" />
+                        <PlayerHostControls id={id} data={data} socket={socket}/>
+                        <span className="spacer"/>
                         <span className="score-cont">
                             <span className="score">
                                 {data.playerScores[id] || 0}
@@ -112,20 +112,22 @@ class PlayerList extends React.Component {
             <div className="player-list-section">
                 <div className="player-list">
                     {data.players.map((id => (
-                        <Player key={id} data={data} id={id} socket={socket} />
+                        <Player key={id} data={data} id={id} socket={socket}/>
                     )))}
                     {!data.players.includes(data.userId) && (
                         <div
                             className="player join-button"
                             onClick={(evt) => this.joinPlayersClick(evt)}
                         >
-                            <div className="player-avatar-section">
-                                <div className="avatar" />
-                            </div>
-                            <div className="player-name-section">
+                            <div className="player-inner">
+                                <div className="player-avatar-section">
+                                    <div className="avatar"/>
+                                </div>
+                                <div className="player-name-section">
                                 <span className="player-name">
                                     {t('Enter')}
                                 </span>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -146,7 +148,7 @@ class Spectator extends React.Component {
                 &nbsp;●&nbsp;
                 <span className="spectator-name">{data.playerNames[id]}</span>
                 &nbsp;
-                <PlayerHostControls id={id} data={data} socket={socket} />
+                <PlayerHostControls id={id} data={data} socket={socket}/>
             </span>
         )
     }

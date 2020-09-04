@@ -1,7 +1,7 @@
 class ScoreChange extends React.Component {
     render() {
-        const { change } = this.props;
-        if ( change === undefined ) {
+        const {change} = this.props;
+        if (change === undefined) {
             return null;
         } else {
             const changeText = ((change > 0) ? '+' : '') + change;
@@ -24,11 +24,12 @@ class Hint extends React.Component {
     }
 
     render() {
-        const { data, player, index } = this.props;
-        const { bannedHints, hints, closedHints, playerLiked, userId, master, phase, wordGuessed, scoreChanges, rounds } = data;
+        const {data, player, index} = this.props;
+        const {bannedHints, hints, closedHints, playerLiked, userId, master, phase, wordGuessed, scoreChanges, rounds} = data;
         const banned = bannedHints[player];
         const isMaster = userId === master;
-        const text = window.hyphenate(hints[player] || (closedHints && closedHints[player]) || "xxx");
+        const origText = hints[player] || (closedHints && closedHints[player]);
+        const text = origText ? window.hyphenate(origText) : null;
 
         const corners = [];
         if (!isMaster || playerLiked || (phase === 4 && !wordGuessed)) {
@@ -60,7 +61,9 @@ class Hint extends React.Component {
                         className="set-like-button"
                         onClick={() => this.setLike(player)}
                     >
-                        <i className="material-icons">thumb_up</i>
+                        <i className="material-icons">{
+                            playerLiked === player ? "favorite" : "favorite_outline"
+                        }</i>
                     </div>
                 </div>
             )
@@ -79,13 +82,13 @@ class Hint extends React.Component {
 
         return (
             <div
-                className={cs("card hint", { banned } )}
+                className={cs("card hint", {banned})}
                 style={Messy.getStyle(rounds + '_' + index)}
             >
-                <div>
-                    { text }
-                </div>
-                { corners }
+                {text != null
+                    ? <div className={cs("hint-text", {banned})}>{text}</div>
+                    : <div className="card-logo"/>}
+                {corners}
             </div>
         )
     }
@@ -93,13 +96,13 @@ class Hint extends React.Component {
 
 class Hints extends React.Component {
     render() {
-        const { data, socket } = this.props;
+        const {data, socket} = this.props;
         return (
             <div className="words">
-                { data.playerHints.map((player, i) => (
-                    <Hint player={player} data={data} socket={socket} key={i} index={i}  />
+                {data.playerHints.map((player, i) => (
+                    <Hint player={player} data={data} socket={socket} key={i} index={i}/>
                 ))}
-            </div> 
+            </div>
         );
     }
 }
@@ -111,10 +114,10 @@ class Messy {
         const points = [{x, y: 0}];
         const avgSpikes = 20;
         while (x < 1) {
-          x += Math.random() / avgSpikes;
-          x = Math.min(x, 1);
-          const y = (even) ? Math.random() : 0;
-          points.push({x, y});
+            x += Math.random() / avgSpikes;
+            x = Math.min(x, 1);
+            const y = (even) ? Math.random() : 0;
+            points.push({x, y});
         }
         return points;
     }
@@ -129,8 +132,8 @@ class Messy {
 
     static genPath() {
         const percentages = [
-          ...this.genZigzag().map(p => this.frac2perc(p, true)),
-          ...this.genZigzag().map(p => this.frac2perc(p, false)),
+            ...this.genZigzag().map(p => this.frac2perc(p, true)),
+            ...this.genZigzag().map(p => this.frac2perc(p, false)),
         ];
         const path = `polygon(${percentages.join()})`;
         return path;
@@ -140,13 +143,18 @@ class Messy {
         return `rotate(${(Math.random() - 0.5) * 6}deg)`;
     }
 
+    static getBackgroundPosition() {
+        return `${(Math.random() - 0.5) * 200}% ${(Math.random() - 0.5) * 200}%`;
+    }
+
     static cache = {}
 
     static getStyle(key) {
         if (!this.cache.hasOwnProperty(key)) {
             this.cache[key] = {
                 clipPath: this.genPath(),
-                transform: this.genTransform()
+                transform: this.genTransform(),
+                backgroundPosition: this.getBackgroundPosition()
             }
         }
         return this.cache[key];

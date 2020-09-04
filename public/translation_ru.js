@@ -14,7 +14,14 @@ window.t = (eng) => {
         'Next round': 'Следующий раунд',
         'The winner is': 'Победил',
         'Ready': 'Готов',
-        'Not ready': 'Не готов'
+        'Not ready': 'Не готов',
+        'player time': 'Время на подсказку',
+        'team time': 'Время на удаление дублей',
+        'master time': 'Время на отгадывание',
+        'reveal time': 'Время на лайк',
+        'words level': 'Уровень слов',
+        'goal': 'Очки для победы',
+        'empty': 'Пусто'
     };
     if (translations.hasOwnProperty(eng)) {
         return translations[eng];

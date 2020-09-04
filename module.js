@@ -42,7 +42,7 @@ function init(wsServer, path) {
                     rounds: 0,
                     phase: 0,
                     playerTime: 60,
-                    teamTime: 20,
+                    teamTime: 10,
                     masterTime: 60,
                     revealTime: 25,
                     goal: 15,
@@ -78,6 +78,8 @@ function init(wsServer, path) {
                                     closedHints: {[playerId]: state.closedHints[playerId]},
                                     closedWord: state.closedWord
                                 });
+                        } else {
+                            send(playerId, "player-state", {closedHints: null, closedWord: null});
                         }
                     });
                 },
@@ -90,8 +92,7 @@ function init(wsServer, path) {
                         if (master)
                             room.masterKicked = true;
                         removePlayer(playerId);
-                    }
-                    else
+                    } else
                         room.inactivePlayers.add(playerId);
                 },
                 startTimer = () => {
@@ -232,11 +233,7 @@ function init(wsServer, path) {
                     room.phase = 2;
                     room.readyPlayers.clear();
                     room.readyPlayers.add(room.master);
-                    const shuffledHints = {};
-                    shuffleArray(Object.keys(state.closedHints)).forEach((player) => {
-                        shuffledHints[player] = state.closedHints[player];
-                    });
-                    state.closedHints = shuffledHints;
+                    room.playerHints = new JSONSet(shuffleArray([...room.playerHints]));
                     startTimer();
                     update();
                     updatePlayerState();
@@ -287,7 +284,7 @@ function init(wsServer, path) {
                 userJoin = (data) => {
                     const user = data.userId;
                     if (!room.playerNames[user])
-                    room.spectators.add(user);
+                        room.spectators.add(user);
                     room.playerColors[user] = room.playerColors[user] || randomColor();
                     room.onlinePlayers.add(user);
                     room.playerNames[user] = data.userName.substr && data.userName.substr(0, 60);
@@ -305,10 +302,10 @@ function init(wsServer, path) {
                 userLeft = (user) => {
                     room.onlinePlayers.delete(user);
                     if (room.spectators.has(user))
-                    delete room.playerNames[user];
+                        delete room.playerNames[user];
                     room.spectators.delete(user);
                     if (room.onlinePlayers.size === 0)
-                    stopGame();
+                        stopGame();
                     update();
                 },
                 userEvent = (user, event, data) => {
@@ -359,7 +356,7 @@ function init(wsServer, path) {
                 "set-like": (user, likedUser) => {
                     if (room.phase === 4 && !room.playerLiked && room.wordGuessed) {
                         room.playerLiked = likedUser;
-                        changeScore(likedUser, 3);
+                        changeScore(likedUser, 2);
                         if (room.time >= 5000)
                             room.time = 5000;
                         checkScores();

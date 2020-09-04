@@ -73,7 +73,7 @@ class HostControls extends React.Component {
                 {data.timed ? (<div className="host-controls-menu">
                     <div className="little-controls">
                         <div className="game-settings">
-                            <div className="set-player-time"><i title="player time"
+                            <div className="set-player-time"><i title={t("player time")}
                                                                 className="material-icons">alarm</i>
                                 {(isHost && !inProcess) ? (<input id="player-time"
                                                                 type="number"
@@ -83,7 +83,7 @@ class HostControls extends React.Component {
                                                                     && this.changeParam(evt.target.valueAsNumber, "playerTime")}
                                 />) : (<span className="value">{data.playerTime}</span>)}
                             </div>
-                            <div className="set-team-time"><i title="team time"
+                            <div className="set-team-time"><i title={t("team time")}
                                                             className="material-icons">alarm</i>
                                 {(isHost && !inProcess) ? (<input id="team-time"
                                                                 type="number"
@@ -92,7 +92,7 @@ class HostControls extends React.Component {
                                                                     && this.changeParam(evt.target.valueAsNumber, "teamTime")}
                                 />) : (<span className="value">{data.teamTime}</span>)}
                             </div>
-                            <div className="set-master-time"><i title="master time"
+                            <div className="set-master-time"><i title={t("master time")}
                                                                 className="material-icons">alarm_on</i>
                                 {(isHost && !inProcess) ? (<input id="master-time"
                                                                 type="number"
@@ -101,7 +101,7 @@ class HostControls extends React.Component {
                                                                 onChange={evt => !isNaN(evt.target.valueAsNumber)
                                                                     && this.changeParam(evt.target.valueAsNumber, "masterTime")}
                                 />) : (<span className="value">{data.masterTime}</span>)}
-                                <div className="set-reveal-time"><i title="reveal time"
+                                <div className="set-reveal-time"><i title={t("reveal time")}
                                                                     className="material-icons">alarm_on</i>
                                     {(isHost && !inProcess) ? (<input id="reveal-time"
                                                                     type="number"
@@ -111,7 +111,7 @@ class HostControls extends React.Component {
                                                                         && this.changeParam(evt.target.valueAsNumber, "revealTime")}
                                     />) : (<span className="value">{data.revealTime}</span>)}
                                 </div>
-                                <div className="set-words-level"><i title="words level"
+                                <div className="set-words-level"><i title={t("words level")}
                                                                     className="material-icons">school</i>
                                     {(isHost && !inProcess) ? (<input id="words-level"
                                                                     type="number"
@@ -122,7 +122,7 @@ class HostControls extends React.Component {
                                                                         && this.changeParam(evt.target.valueAsNumber, "wordsLevel")}
                                     />) : (<span className="value">{data.wordsLevel}</span>)}
                                 </div>
-                                <div className="set-goal"><i title="goal"
+                                <div className="set-goal"><i title={t("goal")}
                                                             className="material-icons">flag</i>
                                     {(isHost && !inProcess) ? (<input id="goal"
                                                                     type="number"
