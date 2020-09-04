@@ -155,6 +155,10 @@ class Game extends React.Component {
                                 //https://stackoverflow.com/questions/37949981/call-child-method-from-parent#45582558
                                 setPhase2={cb => this.phase2StatusBar = cb}
                             />
+                        </div>
+                        <div className={cs("main-row", {
+                            "many-players": data.players.length > 7
+                        })}>
                             <Hints data={data} socket={socket} />
                         </div>
                         <AvatarSaver socket={socket}

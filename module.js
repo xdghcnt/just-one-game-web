@@ -39,6 +39,7 @@ function init(wsServer, path) {
                     guessedWord: null,
                     hints: {},
                     bannedHints: {},
+                    rounds: 0,
                     phase: 0,
                     playerTime: 60,
                     teamTime: 20,
@@ -208,6 +209,7 @@ function init(wsServer, path) {
                             room.wordGuessed = null;
                             room.playerLiked = null;
                             room.readyPlayers.add(room.master);
+                            room.rounds++;
                             room.phase = 1;
                             room.hints = {};
                             room.bannedHints = {};

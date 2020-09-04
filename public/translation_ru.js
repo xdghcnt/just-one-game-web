@@ -1,6 +1,6 @@
 window.t = (eng) => {
     const translations = {
-        'Spectators': 'Зрители',
+        'Spectators': 'Наблюдают',
         'Enter': 'Войти',
         'Not enough players': 'Слишком мало игроков',
         'Host can start game': 'Хост может начать игру',
@@ -9,7 +9,8 @@ window.t = (eng) => {
         'Wait for players to delete duplicates': 'Подождите, пока игроки удалят однокоренные слова',
         'Delete duplicates': 'Удалите однокоренные слова',
         'Now try guess the original word': 'Теперь попробуйте угадать исходное слово',
-        'Now master should guess original word': 'Теперь мастер должен угадать исходное слово',
+        'Now ': 'Теперь ',
+        ' should guess original word': ' должен угадать исходное слово',
         'Next round': 'Следующий раунд',
         'The winner is': 'Победил',
         'Ready': 'Готов',

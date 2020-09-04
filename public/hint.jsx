@@ -24,8 +24,8 @@ class Hint extends React.Component {
     }
 
     render() {
-        const { data, player } = this.props;
-        const { bannedHints, hints, closedHints, playerLiked, userId, master, phase, wordGuessed, scoreChanges } = data;
+        const { data, player, index } = this.props;
+        const { bannedHints, hints, closedHints, playerLiked, userId, master, phase, wordGuessed, scoreChanges, rounds } = data;
         const banned = bannedHints[player];
         const isMaster = userId === master;
         const text = window.hyphenate(hints[player] || (closedHints && closedHints[player]) || "xxx");
@@ -78,7 +78,10 @@ class Hint extends React.Component {
         }
 
         return (
-            <div className={cs("card hint", { banned } )}>
+            <div
+                className={cs("card hint", { banned } )}
+                style={Messy.getStyle(rounds + '_' + index)}
+            >
                 <div>
                     { text }
                 </div>
@@ -93,10 +96,60 @@ class Hints extends React.Component {
         const { data, socket } = this.props;
         return (
             <div className="words">
-                { data.playerHints.map((player) => (
-                    <Hint player={player} data={data} socket={socket} />
+                { data.playerHints.map((player, i) => (
+                    <Hint player={player} data={data} socket={socket} key={i} index={i}  />
                 ))}
             </div> 
         );
     }
+}
+
+class Messy {
+    static genZigzag() {
+        let x = 0;
+        let even = true;
+        const points = [{x, y: 0}];
+        const avgSpikes = 20;
+        while (x < 1) {
+          x += Math.random() / avgSpikes;
+          x = Math.min(x, 1);
+          const y = (even) ? Math.random() : 0;
+          points.push({x, y});
+        }
+        return points;
+    }
+
+    static frac2perc({x, y}, top) {
+        const maxDent = 0.03;
+        const xDent = (top) ? x : 1 - x;
+        const yDent = (top) ? maxDent * y : 1 - maxDent * y;
+        const n2text = (n) => (n * 100).toFixed(1) + '%';
+        return n2text(xDent) + ' ' + n2text(yDent);
+    }
+
+    static genPath() {
+        const percentages = [
+          ...this.genZigzag().map(p => this.frac2perc(p, true)),
+          ...this.genZigzag().map(p => this.frac2perc(p, false)),
+        ];
+        const path = `polygon(${percentages.join()})`;
+        return path;
+    }
+
+    static genTransform() {
+        return `rotate(${(Math.random() - 0.5) * 6}deg)`;
+    }
+
+    static cache = {}
+
+    static getStyle(key) {
+        if (!this.cache.hasOwnProperty(key)) {
+            this.cache[key] = {
+                clipPath: this.genPath(),
+                transform: this.genTransform()
+            }
+        }
+        return this.cache[key];
+    }
+
 }

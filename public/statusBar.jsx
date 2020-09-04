@@ -63,10 +63,14 @@ class ReadyBtn extends React.Component {
     }
 
     render() {
+        const { isReady } = this.props;
         return (
-            <button className="ready" onClick={() => this.toggleReady()}>
-                {(this.props.isReady) ? t('Ready') : t('Not ready')}
-            </button>
+            <div
+                className={cs('ready-button', { isReady })}
+                onClick={() => this.toggleReady()}
+            >
+                <i className="material-icons">fast_forward</i>
+            </div>
         )
     }
 }
@@ -118,26 +122,31 @@ class HintForm extends React.Component {
 
     render() {
         const { data } = this.props;
-        const { userId, closedWord, master } = data;
+        const { userId, closedWord, master, rounds } = data;
         return (
             <div className="hint-form">
-                <div className="card hint">
-                    <input
-                        id="hint-input"
-                        type="text"
-                        autoComplete="off"
-                        autoFocus="true"
-                        onKeyDown={(evt) => this.onKeyDown(evt)}
-                    />
-                    <div className="bl-corner">
-                        <Avatar data={data} player={userId}/>
-                    </div>
-                    <div className="br-corner">
-                        <div
-                            className="add-command-button"
-                            onClick={() => this.addHint()}
-                        >
-                            <i className="material-icons">send</i>
+                <div className="hint-cont">
+                    <div
+                        className="card hint"
+                        style={Messy.getStyle(rounds + '_' + 'input')}
+                    >
+                        <input
+                            id="hint-input"
+                            type="text"
+                            autoComplete="off"
+                            autoFocus="true"
+                            onKeyDown={(evt) => this.onKeyDown(evt)}
+                        />
+                        <div className="bl-corner">
+                            <Avatar data={data} player={userId}/>
+                        </div>
+                        <div className="br-corner">
+                            <div
+                                className="add-command-button"
+                                onClick={() => this.addHint()}
+                            >
+                                <i className="material-icons">send</i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -156,10 +165,10 @@ class MasterTarget extends React.Component {
         const { master, closedWord } = data;
         return (
             <div className="master-target">
-                <div className="avatar-arrow">
-                    <Player data={data} id={master} socket={socket} simplified={true} />
-                </div>
                 <ClosedWord text={closedWord} />
+                <div className="master-avatar">
+                    <Avatar data={data} player={master}/>
+                </div>
             </div>
         )
     }
@@ -194,7 +203,9 @@ class ClosedWordForm extends React.Component {
                     <div
                         className="add-command-button"
                         onClick={() => this.guessWord()}
-                    >➜</div>
+                    >
+                        <i className="material-icons">send</i>
+                    </div>
                 </div>
             </div>
         )
@@ -272,7 +283,7 @@ class StatusBar extends React.Component {
             } else {
                 content = <MasterTarget data={data} />;
                 subtitle = t("Delete duplicates");
-                hasReady = true;
+                hasReady = isPlayer;
             }
         } else if (phase === 3) {
             if (isMaster) {
@@ -280,12 +291,12 @@ class StatusBar extends React.Component {
                 subtitle = t("Now try guess the original word");
             } else {
                 content = <MasterTarget data={data} />;
-                subtitle = t("Now master should guess original word");
+                subtitle = t('Now ') + playerNames[master] + t(' should guess original word');
             }
         } else if (phase === 4) {
             content = <ClosedWordResult data={data} />;
             subtitle = t("Next round");
-            hasReady = true;
+            hasReady = isPlayer;
         } else if (phase === 0 && playerWin) {
             content = <Title text={t('The winner is') + ' ' + playerNames[playerWin] + '!'} />;
             subtitle = enoughText;
@@ -297,18 +308,12 @@ class StatusBar extends React.Component {
                     <div className="aligner">
                         {content}
                     </div>
-                    {subtitle && (
-                        <div className="subtitle">
-                            {subtitle}
-                            {isPlayer && hasReady && (
-                                <ReadyBtn isReady={isReady} socket={socket} />
-                            )}
-                        </div>
+                    {subtitle && <div className="subtitle">{subtitle}</div>}
+                    {hasReady && <ReadyBtn isReady={isReady} socket={socket} />}
+                    {timed && time !== null && (
+                        <ProgressBar data={data} setPhase2={setPhase2} setTime={setTime} />
                     )}
                 </div>
-                {timed && time !== null && (
-                    <ProgressBar data={data} setPhase2={setPhase2} setTime={setTime} />
-                )}
             </div>
         )
     }

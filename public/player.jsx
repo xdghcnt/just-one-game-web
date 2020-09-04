@@ -56,54 +56,41 @@ class Player extends React.Component {
 
     
     render() {
-        const { data, socket, id, simplified } = this.props;
-        const isReady = data.readyPlayers.includes(id);
-
-        let nameSection;
-        if (simplified) {
-            nameSection = (
-                <div className="player-name-section">
-                    <span className="player-name">
-                        {data.playerNames[id]}
-                    </span>
-                </div>
-            )
-        } else {
-            nameSection = (
-                <div className="player-name-section">
-                    <span className="player-name">
-                        {data.master === id ? "➜ " : ""}
-                        {isReady ? "✓ " : ""}
-                        {data.playerNames[id]}
-                    </span>
-                    &nbsp;
-                    <PlayerHostControls id={id} data={data} socket={socket} />
-                    <span className="spacer" />
-                    <span className="score-cont">
-                        <span className="score">
-                            {data.playerScores[id] || 0}
-                        </span>
-                    </span>
-                </div>
-            )
-        }
+        const { data, socket, id } = this.props;
+        const { master, readyPlayers } = data;
+        const isReady = readyPlayers.includes(id);
+        const isMaster = id === master;
 
         return (
             <div className={cs("player", {
-                ready: isReady,
+                ready: isReady && !isMaster,
                 offline: !~data.onlinePlayers.indexOf(id),
                 self: id === data.userId,
-                master: data.master === id
+                master: isMaster,
             })} onTouchStart={(e) => e.target.focus()}>
-                <div className="player-avatar-section"
-                     onTouchStart={(e) => e.target.focus()}
-                     onClick={() => (id === data.userId) && this.clickSaveAvatar()}>
-                    <Avatar data={data} player={id}/>
-                    {id === data.userId ? (<i className="change-avatar-icon material-icons" title="Change avatar">
-                        edit
-                    </i>) : ""}
+                <div className="player-inner">
+                    <div className="player-avatar-section"
+                        onTouchStart={(e) => e.target.focus()}
+                        onClick={() => (id === data.userId) && this.clickSaveAvatar()}>
+                        <Avatar data={data} player={id}/>
+                        {id === data.userId ? (<i className="change-avatar-icon material-icons" title="Change avatar">
+                            edit
+                        </i>) : ""}
+                    </div>
+                    <div className="player-name-section">
+                        <span className="player-name">
+                            {data.playerNames[id]}
+                        </span>
+                        &nbsp;
+                        <PlayerHostControls id={id} data={data} socket={socket} />
+                        <span className="spacer" />
+                        <span className="score-cont">
+                            <span className="score">
+                                {data.playerScores[id] || 0}
+                            </span>
+                        </span>
+                    </div>
                 </div>
-                { nameSection }
             </div>
         );
     }
