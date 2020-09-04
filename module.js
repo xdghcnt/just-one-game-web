@@ -32,12 +32,14 @@ function init(wsServer, path) {
                     readyPlayers: new JSONSet(),
                     playerHints: new JSONSet(),
                     playerScores: {},
+                    scoreChanges: {},
                     teamsLocked: false,
                     timed: true,
                     word: null,
                     guessedWord: null,
                     hints: {},
                     bannedHints: {},
+                    rounds: 0,
                     phase: 0,
                     playerTime: 60,
                     teamTime: 20,
@@ -131,7 +133,7 @@ function init(wsServer, path) {
                                         endRound();
                                     } else if (room.phase === 4) {
                                         if (!room.playerLiked && room.wordGuessed) {
-                                            room.playerScores[room.master] -= 2;
+                                            changeScore(room.master, -2);
                                             processInactivity(room.master, true);
                                         }
                                         startRound();
@@ -147,6 +149,7 @@ function init(wsServer, path) {
                         room.masterKicked = false;
                         room.playerWin = null;
                         room.playerScores = {};
+                        room.scoreChanges = {};
                         room.paused = false;
                         room.teamsLocked = true;
                         clearInterval(interval);
@@ -165,12 +168,17 @@ function init(wsServer, path) {
                     update();
                     updatePlayerState();
                 },
+                changeScore = (player, change) => {
+                    room.playerScores[player] = room.playerScores[player] || 0;
+                    room.playerScores[player] += change;
+                    room.scoreChanges[player] = room.scoreChanges[player] || 0;
+                    room.scoreChanges[player] += change;
+                },
                 endRound = () => {
                     room.phase = 4;
                     Object.keys(state.closedHints).forEach((player) => {
                         if (room.wordGuessed && room.playerHints.has(player)) {
-                            room.playerScores[player] = room.playerScores[player] || 0;
-                            room.playerScores[player] += 1;
+                            changeScore(player, 1);
                         }
                         room.playerHints.add(player);
                     });
@@ -201,11 +209,13 @@ function init(wsServer, path) {
                             room.wordGuessed = null;
                             room.playerLiked = null;
                             room.readyPlayers.add(room.master);
+                            room.rounds++;
                             room.phase = 1;
                             room.hints = {};
                             room.bannedHints = {};
                             state.closedHints = {};
                             room.playerHints.clear();
+                            room.scoreChanges = {};
                             room.word = state.closedWord = room.guessedWord = null;
                             state.closedWord = shuffleArray(defaultWords[room.wordsLevel])[0];
                             startTimer();
@@ -277,7 +287,7 @@ function init(wsServer, path) {
                 userJoin = (data) => {
                     const user = data.userId;
                     if (!room.playerNames[user])
-                        room.spectators.add(user);
+                    room.spectators.add(user);
                     room.playerColors[user] = room.playerColors[user] || randomColor();
                     room.onlinePlayers.add(user);
                     room.playerNames[user] = data.userName.substr && data.userName.substr(0, 60);
@@ -295,10 +305,10 @@ function init(wsServer, path) {
                 userLeft = (user) => {
                     room.onlinePlayers.delete(user);
                     if (room.spectators.has(user))
-                        delete room.playerNames[user];
+                    delete room.playerNames[user];
                     room.spectators.delete(user);
                     if (room.onlinePlayers.size === 0)
-                        stopGame();
+                    stopGame();
                     update();
                 },
                 userEvent = (user, event, data) => {
@@ -349,8 +359,7 @@ function init(wsServer, path) {
                 "set-like": (user, likedUser) => {
                     if (room.phase === 4 && !room.playerLiked && room.wordGuessed) {
                         room.playerLiked = likedUser;
-                        room.playerScores[likedUser] = room.playerScores[likedUser] || 0;
-                        room.playerScores[likedUser] += 3;
+                        changeScore(likedUser, 3);
                         if (room.time >= 5000)
                             room.time = 5000;
                         checkScores();
@@ -361,8 +370,7 @@ function init(wsServer, path) {
                     if (room.phase === 3 && room.master === user && word) {
                         if (state.closedWord.toLowerCase() === word.toLowerCase().trim()) {
                             room.wordGuessed = true;
-                            room.playerScores[room.master] = room.playerScores[room.master] || 0;
-                            room.playerScores[room.master] += 2;
+                            changeScore(room.master, 2);
                         }
                         room.guessedWord = word;
                         endRound();
