@@ -100,7 +100,7 @@ class ClosedWord extends React.Component {
     render() {
         const {text, mistake} = this.props;
         return (
-            <div className={cs("card closed-word", {mistake, back: text == null})}>
+            <div className={cs("card closed-word", {mistake, back: !mistake && text == null})}>
                 {(text != null || mistake)
                     ? <div>{window.hyphenate(text ? text : `(${t("empty")})`)}</div>
                     : <div className="card-logo"/>}
