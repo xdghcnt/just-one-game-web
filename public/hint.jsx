@@ -87,7 +87,8 @@ class Hint extends React.Component {
             >
                 {text != null
                     ? <div className={cs("hint-text", {banned})}>{text}</div>
-                    : <div className="card-logo"/>}
+                    : <div className="card-logo"
+                           style={Messy.getLogoStyle(rounds + '_' + index)}/>}
                 {corners}
             </div>
         )
@@ -143,11 +144,16 @@ class Messy {
         return `rotate(${(Math.random() - 0.5) * 6}deg)`;
     }
 
+    static genLogoTransform() {
+        return `rotate(${((Math.random() - 0.5) * 50) - 7}deg)`;
+    }
+
     static getBackgroundPosition() {
         return `${(Math.random() - 0.5) * 200}% ${(Math.random() - 0.5) * 200}%`;
     }
 
     static cache = {}
+    static cacheLogo = {}
 
     static getStyle(key) {
         if (!this.cache.hasOwnProperty(key)) {
@@ -158,6 +164,15 @@ class Messy {
             }
         }
         return this.cache[key];
+    }
+
+    static getLogoStyle(key) {
+        if (!this.cacheLogo.hasOwnProperty(key)) {
+            this.cacheLogo[key] = {
+                transform: this.genLogoTransform()
+            }
+        }
+        return this.cacheLogo[key];
     }
 
 }

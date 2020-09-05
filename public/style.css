@@ -898,7 +898,7 @@ input#command-input {
 }
 
 .card.hint .card-logo {
-    width: 80px;
-    height: 80px;
-    background: url(/just-one/logo-paper.png)
+    height: 55%;
+    background-image: url(/just-one/logo-paper.png);
+    opacity: 0.4;
 }
