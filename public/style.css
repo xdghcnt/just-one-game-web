@@ -453,6 +453,7 @@ body {
     top: 0;
     height: 100%;
     opacity: 0.5;
+    background-color: rgb(0 0 0 / 38%) !important;
 }
 
 .dark-theme .avatar {
