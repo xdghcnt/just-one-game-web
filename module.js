@@ -42,7 +42,7 @@ function init(wsServer, path) {
                     rounds: 0,
                     phase: 0,
                     playerTime: 60,
-                    teamTime: 10,
+                    teamTime: 12,
                     masterTime: 60,
                     revealTime: 25,
                     goal: 15,

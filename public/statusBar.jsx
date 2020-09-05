@@ -100,7 +100,7 @@ class ClosedWord extends React.Component {
     render() {
         const {text, mistake} = this.props;
         return (
-            <div className={cs("card closed-word", {mistake})}>
+            <div className={cs("card closed-word", {mistake, back: text == null})}>
                 {(text != null || mistake)
                     ? <div>{window.hyphenate(text ? text : `(${t("empty")})`)}</div>
                     : <div className="card-logo"/>}
@@ -265,7 +265,8 @@ class StatusBar extends React.Component {
         let subtitle = null
         let hasReady = false
         if (phase === 0 && !playerWin) {
-            content = <Title text={enoughText}/>;
+            content = <MasterTarget data={data}/>;
+            subtitle = enoughText;
         } else if (phase === 1) {
             if (isMaster) {
                 content = <MasterTarget data={data}/>;
@@ -302,7 +303,10 @@ class StatusBar extends React.Component {
             subtitle = t("Next round");
             hasReady = isPlayer;
         } else if (phase === 0 && playerWin) {
-            content = <Title text={t('The winner is') + ' ' + playerNames[playerWin] + '!'}/>;
+            content = <div className="player-win">
+                <Avatar data={data} player={playerWin}/>
+                <Title text={t('The winner is') + ' ' + playerNames[playerWin] + '!'}/>
+            </div>;
             subtitle = enoughText;
         }
 
