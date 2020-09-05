@@ -2,7 +2,7 @@ window.t = (eng) => {
     const translations = {
         'Spectators': 'Наблюдают',
         'Enter': 'Войти',
-        'Not enough players': 'Слишком мало игроков',
+        'Not enough players (minimum 3)': 'Слишком мало игроков (минимум 3)',
         'Host can start game': 'Хост может начать игру',
         'Wait for players to write their hints': 'Подождите, пока игроки напишут подсказки',
         'Write your hint': 'Напишите подсказку',

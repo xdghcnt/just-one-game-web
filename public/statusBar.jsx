@@ -259,7 +259,7 @@ class StatusBar extends React.Component {
 
         const enoughText = (players.length > 2)
             ? t('Host can start game')
-            : t('Not enough players');
+            : t('Not enough players (minimum 3)');
 
         let content
         let subtitle = null
