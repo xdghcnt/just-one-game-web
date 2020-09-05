@@ -127,6 +127,27 @@ class Game extends React.Component {
         this.setState(Object.assign({}, this.state));
     }
 
+    getOptimalWidth({players}) {
+        const numCards = players.length - 1;
+        const contWidth = window.innerWidth - 20; //approximate
+        if (numCards <= 6 || contWidth < 760) {
+            return null;
+        } else {
+            const cardWidth = 210 + 25; //approximate
+            const originalNumCols = Math.floor(contWidth / cardWidth);
+            const originalNumRows = Math.ceil(numCards / originalNumCols);
+            let numRows = originalNumRows;
+            let numCols = originalNumCols;
+            while (numRows === originalNumRows) {
+                numCols-- ;
+                numRows = Math.ceil(numCards / numCols);
+            };
+            numCols++;
+            return ({ maxWidth: numCols * cardWidth + 'px' });
+        }
+
+    }
+
     render() {
         if (this.state.disconnected) {
             return (<div className="kicked">
@@ -156,9 +177,7 @@ class Game extends React.Component {
                                 setPhase2={cb => this.phase2StatusBar = cb}
                             />
                         </div>
-                        <div className={cs("main-row", {
-                            "many-players": data.players.length > 7
-                        })}>
+                        <div className="main-row" style={this.getOptimalWidth(data)}>
                             <Hints data={data} socket={socket} />
                         </div>
                         <AvatarSaver socket={socket}

@@ -111,14 +111,12 @@ class Hints extends React.Component {
 class Messy {
     static genZigzag() {
         let x = 0;
-        let even = true;
-        const points = [{x, y: 0}];
+        const points = [{x, y: Math.random()}];
         const avgSpikes = 20;
         while (x < 1) {
             x += Math.random() / avgSpikes;
             x = Math.min(x, 1);
-            const y = (even) ? Math.random() : 0;
-            points.push({x, y});
+            points.push({x, y: Math.random()});
         }
         return points;
     }
