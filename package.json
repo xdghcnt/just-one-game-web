@@ -1,10 +1,10 @@
 {
-  "name": "codenames",
+  "name": "just-one",
   "version": "0.0.0",
-  "main": "module.js",
+  "main": "lib/module.js",
   "private": true,
   "files": [
-    "module.js",
+    "lib",
     "public"
   ],
   "dependencies": {
