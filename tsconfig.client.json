@@ -1,0 +1,7 @@
+{
+    "extends": "./tsconfig.json",
+    "exclude": ["src/server"],
+    "compilerOptions": {
+        "outDir": "./public/js"
+    }
+}
