@@ -1,11 +1,70 @@
-//import React from "react";
-//import ReactDOM from "react-dom"
-//import io from "socket.io"
-//import StatusBar from '../statusBar.jsx'
-//import Hints from '../hints.jsx'
-//import PlayerList, SpectatorList from '../player.jsx'
-//import HostControls from '../hostControls.jsx'
-//import AvatarSaver from '../avatar.jsx'
+import React, { Component } from "react";
+import { render } from "react-dom";
+import { StatusBar } from './statusBar';
+import { Hints } from './hint';
+import { PlayerList, SpectatorList } from './player';
+import { HostControls } from './hostControls';
+import { AvatarSaver } from './avatar';
+import { InitUserArgs, RoomState, PlayerState } from '../common/messages';
+
+declare global {
+    interface WebSocketChannel {
+        on(messageName: string, callback: (d: any) => any): WebSocketChannel;
+        emit(messageName: string, data?: any): any;
+    }
+
+    interface Window {
+        wssToken?: string;
+        socket?: WebSocketWrapper;
+    }
+
+    type CommonRoomComponent =
+        (new() => Component<{state: FullState, app: Game}>)
+        & { processCommonRoom: (serverState: any, clientState: any) => any };
+
+    const CommonRoom: CommonRoomComponent;
+
+    type popupModal = (
+        options: object,
+        callback?: (popupReturnObj: {
+            proceed?: boolean,
+            input_value?: string
+        }) => any
+    ) => void;
+
+    const popup: {
+        alert: popupModal;
+        prompt: popupModal;
+        confirm: popupModal;
+    };
+
+    const cs: (...args: any[]) => string;
+
+    type HollowState = {
+        inited: false;
+    }
+
+    type FullState = RoomState & PlayerState & {
+        inited: true;
+        userId: string;
+    }
+
+    type DisconnectedState = Partial<RoomState> & {
+        inited: false;
+        disconnected: true;
+        disconnectReason: any;
+    }
+
+    type GameCompState = HollowState | FullState | DisconnectedState;
+
+    class ConnectedComponent extends Component<{data: FullState, socket: WebSocketChannel}> {}
+}
+
+interface WebSocketWrapper {
+    of(channelName: string): WebSocketChannel;
+    on(messageName: string, callback: (data: any) => any): void;
+}
+
 
 function makeId() {
     let text = "";
@@ -16,18 +75,33 @@ function makeId() {
     return text;
 }
 
-class Game extends React.Component {
+class Game extends Component<{}, GameCompState> {
 
-    constructor() {
-        super();
+    userId?: string;
+    userToken?: string;
+    socket?: WebSocketChannel;
+    masterSound?: HTMLAudioElement;
+    storySound?: HTMLAudioElement;
+    revealSound?: HTMLAudioElement;
+    tapSound?: HTMLAudioElement;
+    phase2StatusBar?: () => void;
+
+    constructor(props) {
+        super(props);
         this.state = {
             inited: false
         };
-        window.hyphenate = createHyphenator(hyphenationPatternsRu);
     }
 
     componentDidMount() {
-        const initArgs = {};
+        const initArgs : InitUserArgs = {
+            avatarId: localStorage.avatarId,
+            roomId: location.hash.substr(1),
+            userId: this.userId = localStorage.dixitUserId,
+            token: this.userToken = localStorage.dixitUserToken,
+            userName: localStorage.userName,
+            wssToken: window.wssToken
+        };
         if (!parseInt(localStorage.darkThemeDixit))
             document.body.classList.add("dark-theme");
         if (!localStorage.dixitUserId || !localStorage.dixitUserToken) {
@@ -44,33 +118,29 @@ class Game extends React.Component {
             initArgs.acceptDelete = localStorage.acceptDelete;
             delete localStorage.acceptDelete;
         }
-        initArgs.avatarId = localStorage.avatarId;
-        initArgs.roomId = location.hash.substr(1);
-        initArgs.userId = this.userId = localStorage.dixitUserId;
-        initArgs.token = this.userToken = localStorage.dixitUserToken;
-        initArgs.userName = localStorage.userName;
-        initArgs.wssToken = window.wssToken;
         this.socket = window.socket.of("just-one");
-        this.player = {cards: []};
-        this.socket.on("state", state => {
+        // this.player = {cards: []}; //Seems deprecated.
+        this.socket.on("state", (state: RoomState) => {
             CommonRoom.processCommonRoom(state, this.state);
-            if (this.state.phase && state.phase !== 0 && !parseInt(localStorage.muteSounds)) {
-                if (this.state.master !== this.userId && state.master === this.userId)
+            if (this.state.inited) {
+                if (this.state.phase && state.phase !== 0 && !parseInt(localStorage.muteSounds)) {
+                    if (this.state.master !== this.userId && state.master === this.userId)
                     this.masterSound.play();
-                else if (this.state.phase === 1 && state.phase === 2)
+                    else if (this.state.phase === 1 && state.phase === 2)
                     this.storySound.play();
-                else if (this.state.phase === 2 && state.phase === 3)
+                    else if (this.state.phase === 2 && state.phase === 3)
                     this.revealSound.play();
-                else if (state.phase === 2 && this.state.readyPlayers.length !== state.readyPlayers.length)
+                    else if (state.phase === 2 && this.state.readyPlayers.length !== state.readyPlayers.length)
                     this.tapSound.play();
+                }
+                if (this.state.phase !== 2 && state.phase === 2)
+                    this.phase2StatusBar && this.phase2StatusBar();
             }
-            if (this.state.inited && this.state.phase !== 2 && state.phase === 2)
-                this.phase2StatusBar && this.phase2StatusBar();
             this.setState(Object.assign({
                 userId: this.userId
             }, state));
         });
-        this.socket.on("player-state", (state) => {
+        this.socket.on("player-state", (state: PlayerState) => {
             this.setState(Object.assign(this.state, state));
         });
         this.socket.on("message", text => {
@@ -91,13 +161,7 @@ class Game extends React.Component {
                 userId: this.userId,
                 authRequired: true
             }));
-            if (grecaptcha)
-                grecaptcha.render("captcha-container", {
-                    sitekey: "",
-                    callback: (key) => this.socket.emit("auth", key)
-                });
-            else
-                setTimeout(() => window.location.reload(), 3000)
+            setTimeout(() => window.location.reload(), 3000)
         });
         this.socket.on("prompt-delete-prev-room", (roomList) => {
             if (localStorage.acceptDelete =
@@ -127,6 +191,7 @@ class Game extends React.Component {
         this.setState(Object.assign({}, this.state));
     }
 
+    //TODO: move to Hints component
     getOptimalWidth({players}) {
         const numCards = players.length - 1;
         const contWidth = window.innerWidth - 20; //approximate
@@ -149,12 +214,11 @@ class Game extends React.Component {
     }
 
     render() {
-        if (this.state.disconnected) {
+        if ('disconnected' in this.state && this.state.disconnected) {
             return (<div className="kicked">
                 Disconnected{this.state.disconnectReason ? ` (${this.state.disconnectReason})` : ""}
             </div>);
         } else if (this.state.inited) {
-            document.body.classList.add("captcha-solved");
             const
                 data = this.state,
                 isMaster = data.master === data.userId,
@@ -197,4 +261,4 @@ class Game extends React.Component {
     }
 }
 
-ReactDOM.render(<Game/>, document.getElementById('root'));
+render(<Game/>, document.getElementById('root'));

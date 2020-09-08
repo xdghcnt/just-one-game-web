@@ -126,10 +126,6 @@ body {
 @media (max-width: 767px) {
 }
 
-.captcha-solved #captcha-container {
-    display: none;
-}
-
 .little-controls input {
     width: 39px;
     background: transparent;

@@ -1,4 +1,4 @@
-window.t = (eng) => {
+export const t = (eng) => {
     const translations = {
         'Spectators': 'Наблюдают',
         'Enter': 'Войти',

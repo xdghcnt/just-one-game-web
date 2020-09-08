@@ -1,20 +1,13 @@
-class ScoreChange extends React.Component {
-    render() {
-        const {change} = this.props;
-        if (change === undefined) {
-            return null;
-        } else {
-            const changeText = ((change > 0) ? '+' : '') + change;
-            return (
-                <span class="score-change">
-                    {changeText}
-                </span>
-            );
-        }
-    }
-}
+import React, { Component } from "react";
+import { Avatar } from "./avatar";
+import { hyphenateSync } from "hyphen/ru";
 
-class Hint extends React.Component {
+class Hint extends Component<{
+    player: string,
+    data: FullState,
+    socket: WebSocketChannel,
+    index: number
+}> {
     toggleHintBan(user) {
         this.props.socket.emit("toggle-hint-ban", user);
     }
@@ -29,7 +22,7 @@ class Hint extends React.Component {
         const banned = bannedHints[player];
         const isMaster = userId === master;
         const origText = hints[player] || (closedHints && closedHints[player]);
-        const text = origText ? window.hyphenate(origText) : null;
+        const text = origText ? hyphenateSync(origText) : null;
 
         const corners = [];
         if (!isMaster || playerLiked || (phase === 4 && !wordGuessed)) {
@@ -95,7 +88,7 @@ class Hint extends React.Component {
     }
 }
 
-class Hints extends React.Component {
+export class Hints extends ConnectedComponent {
     render() {
         const {data, socket} = this.props;
         return (
@@ -108,7 +101,7 @@ class Hints extends React.Component {
     }
 }
 
-class Messy {
+export class Messy {
     static genZigzag() {
         let x = 0;
         const points = [{x, y: Math.random()}];
@@ -153,7 +146,7 @@ class Messy {
     static cache = {}
     static cacheLogo = {}
 
-    static getStyle(key) {
+    static getStyle(key: string): object {
         if (!this.cache.hasOwnProperty(key)) {
             this.cache[key] = {
                 clipPath: this.genPath(),
@@ -164,7 +157,7 @@ class Messy {
         return this.cache[key];
     }
 
-    static getLogoStyle(key) {
+    static getLogoStyle(key: string): object {
         if (!this.cacheLogo.hasOwnProperty(key)) {
             this.cacheLogo[key] = {
                 transform: this.genLogoTransform()

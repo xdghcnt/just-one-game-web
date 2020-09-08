@@ -1,3 +1,15 @@
+import { PlayerState, RoomState } from "../common/messages";
+
+type Modify<T, R> = Omit<T, keyof R> & R;
+interface ServerRoomState extends Modify<RoomState, {
+    spectators: Set<string>;
+    inactivePlayers: Set<string>;
+    onlinePlayers: Set<string>;
+    players: Set<string>;
+    readyPlayers: Set<string>;
+    playerHints: Set<string>;
+  }> {}
+
 function init(wsServer, path) {
     const
         fs = require("fs"),
@@ -20,7 +32,7 @@ function init(wsServer, path) {
         constructor(hostId, hostData, userRegistry) {
             super(hostId, hostData, userRegistry);
             const
-                room = {
+                room: ServerRoomState = {
                     inited: true,
                     hostId: hostId,
                     spectators: new JSONSet(),
@@ -56,7 +68,7 @@ function init(wsServer, path) {
                     wordGuessed: null,
                     masterKicked: false
                 },
-                state = {
+                state: PlayerState = {
                     closedHints: {},
                     closedWord: null
                 };
@@ -88,7 +100,7 @@ function init(wsServer, path) {
                     const nextPlayerIndex = [...room.players].indexOf(room.master) + 1;
                     return [...room.players][(room.players.size === nextPlayerIndex) ? 0 : nextPlayerIndex];
                 },
-                processInactivity = (playerId, master) => {
+                processInactivity = (playerId, master=false) => {
                     if (room.inactivePlayers.has(playerId)) {
                         if (master)
                             room.masterKicked = true;
@@ -114,7 +126,7 @@ function init(wsServer, path) {
                         let time = new Date();
                         interval = setInterval(() => {
                             if (!room.paused) {
-                                room.time -= new Date() - time;
+                                room.time -= (new Date()).getTime() - time.getTime();
                                 time = new Date();
                                 if (room.time <= 0) {
                                     clearInterval(interval);
@@ -200,7 +212,7 @@ function init(wsServer, path) {
                     update();
                     updatePlayerState();
                 },
-                startRound = (initial) => {
+                startRound = (initial=false) => {
                     room.readyPlayers.clear();
                     if (room.players.size >= PLAYERS_MIN) {
                         checkScores();
@@ -525,7 +537,7 @@ function init(wsServer, path) {
     }
 
     class JSONSet extends Set {
-        constructor(iterable) {
+        constructor(iterable=[]) {
             super(iterable)
         }
 

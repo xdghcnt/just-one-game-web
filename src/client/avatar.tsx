@@ -1,7 +1,6 @@
-//import React from "react";
-//import ReactDOM from "react-dom"
+import React, { Component } from "react";
 
-class Avatar extends React.Component {
+export class Avatar extends Component<{data: FullState, player: string}> {
     render() {
         const
             hasAvatar = !!this.props.data.playerAvatars[this.props.player],
@@ -9,10 +8,10 @@ class Avatar extends React.Component {
         return (
             <div className={cs("avatar", {"has-avatar": hasAvatar})}
                  style={{
-                     "background-image": hasAvatar
+                     backgroundImage: hasAvatar
                          ? `url(${avatarURI})`
                          : `none`,
-                     "background-color": hasAvatar
+                     backgroundColor: hasAvatar
                          ? `transparent`
                          : this.props.data.playerColors[this.props.player]
                  }}>
@@ -26,7 +25,11 @@ class Avatar extends React.Component {
     }
 }
 
-class AvatarSaver extends React.Component {
+export class AvatarSaver extends Component<{
+    socket: WebSocketChannel,
+    userId: string,
+    userToken: string
+}> {
     saveAvatar(event, props) {
         const input = event.target;
         if (input.files && input.files[0]) {
@@ -35,7 +38,7 @@ class AvatarSaver extends React.Component {
                 uri = "/common/upload-avatar",
                 xhr = new XMLHttpRequest(),
                 fd = new FormData(),
-                fileSize = ((file.size / 1024) / 1024).toFixed(4); // MB
+                fileSize = ((file.size / 1024) / 1024); // MB
             if (fileSize <= 5) {
     
                 xhr.open("POST", uri, true);

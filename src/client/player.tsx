@@ -1,8 +1,12 @@
-//import React from "react";
-//import ReactDOM from "react-dom"
-//import Avatar from '../avatar.jsx'
+import React, { Component } from "react";
+import { Avatar } from './avatar';
+import { t } from "./translation_ru";
 
-class PlayerHostControls extends React.Component {
+class PlayerHostControls extends Component<{
+    data: FullState,
+    socket: WebSocketChannel,
+    id: string
+}> {
     removePlayer(id, evt) {
         evt.stopPropagation();
         popup.confirm(
@@ -48,7 +52,11 @@ class PlayerHostControls extends React.Component {
     }
 }
 
-class Player extends React.Component {
+class Player extends Component<{
+    data: FullState,
+    socket: WebSocketChannel,
+    id: string
+}> {
 
     clickSaveAvatar() {
         document.getElementById("avatar-input").click();
@@ -67,10 +75,10 @@ class Player extends React.Component {
                 offline: !~data.onlinePlayers.indexOf(id),
                 self: id === data.userId,
                 master: isMaster,
-            })} onTouchStart={(e) => e.target.focus()}>
+            })} onTouchStart={(e) => (e.target as HTMLElement).focus()}>
                 <div className="player-inner">
                     <div className="player-avatar-section"
-                         onTouchStart={(e) => e.target.focus()}
+                         onTouchStart={(e) => (e.target as HTMLElement).focus()}
                          onClick={() => (id === data.userId) && this.clickSaveAvatar()}>
                         <Avatar data={data} player={id}/>
                         {id === data.userId ? (<i className="change-avatar-icon material-icons" title="Change avatar">
@@ -96,7 +104,7 @@ class Player extends React.Component {
     }
 }
 
-class PlayerList extends React.Component {
+export class PlayerList extends ConnectedComponent {
 
     joinPlayersClick(evt) {
         evt.stopPropagation();
@@ -137,7 +145,11 @@ class PlayerList extends React.Component {
     }
 }
 
-class Spectator extends React.Component {
+class Spectator extends Component<{
+    data: FullState,
+    socket: WebSocketChannel,
+    id: string
+}> {
     render() {
         const
             data = this.props.data,
@@ -154,7 +166,7 @@ class Spectator extends React.Component {
     }
 }
 
-class SpectatorList extends React.Component {
+export class SpectatorList extends ConnectedComponent {
     joinSpectatorsClick(evt) {
         evt.stopPropagation();
         if (!this.props.data.teamsLocked)

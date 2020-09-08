@@ -1,8 +1,17 @@
-//import React from "react";
-//import ReactDOM from "react-dom"
-//import Avatar from '../avatar.jsx' 
+import React, { Component } from "react";
+import { Avatar } from './avatar' 
+import { Messy } from './hint'
+import { hyphenateSync } from "hyphen/ru";
+import { t } from "./translation_ru";
 
-class ProgressBar extends React.Component {
+class ProgressBar extends Component<{
+    data: FullState,
+    setTime: (time: number) => void,
+    setPhase2: any
+}> {
+    timerTimeout?: ReturnType<typeof setTimeout>;
+    timerSound?: HTMLAudioElement;
+
     componentDidMount() {
         this.timerSound = new Audio("/just-one/tick.mp3");
         this.timerSound.volume = 0.4;
@@ -38,7 +47,7 @@ class ProgressBar extends React.Component {
             this.timerTimeout = setTimeout(() => {
                 if (data.timed && !data.paused) {
                     let prevTime = data.time,
-                        time = prevTime - (new Date - timeStart);
+                        time = prevTime - ((new Date).getTime() - timeStart.getTime());
                     setTime(time);
                     this.updateTimer(time);
                     if (![2, 4].includes(data.phase) && data.timed && time < 5000
@@ -56,7 +65,7 @@ class ProgressBar extends React.Component {
     }
 }
 
-class ReadyBtn extends React.Component {
+class ReadyBtn extends Component<{isReady: boolean, socket: WebSocketChannel}> {
 
     toggleReady() {
         this.props.socket.emit("toggle-ready");
@@ -75,7 +84,7 @@ class ReadyBtn extends React.Component {
     }
 }
 
-class Title extends React.Component {
+class Title extends Component<{text: string}> {
     render() {
         return (
             <div className="title">
@@ -85,24 +94,13 @@ class Title extends React.Component {
     }
 }
 
-class Subtitle extends React.Component {
-    render() {
-        const {text, readyBtn} = this.props;
-        return (
-            <div className="subtitle">
-                {text} {readyBtn}
-            </div>
-        )
-    }
-}
-
-class ClosedWord extends React.Component {
+class ClosedWord extends Component<{text: string, mistake?: boolean}> {
     render() {
         const {text, mistake} = this.props;
         return (
             <div className={cs("card closed-word", {mistake, back: !mistake && text == null})}>
                 {(text != null || mistake)
-                    ? <div>{window.hyphenate(text ? text : `(${t("empty")})`)}</div>
+                    ? <div>{hyphenateSync(text ? text : `(${t("empty")})`)}</div>
                     : <div className="card-logo"/>}
                 {this.props.children}
             </div>
@@ -110,10 +108,10 @@ class ClosedWord extends React.Component {
     }
 }
 
-//TODO: don't let spectators input
-class HintForm extends React.Component {
+class HintForm extends ConnectedComponent {
     addHint() {
-        this.props.socket.emit("add-hint", document.getElementById("hint-input").value);
+        const input = document.getElementById("hint-input") as HTMLInputElement;
+        this.props.socket.emit("add-hint", input.value);
     }
 
     onKeyDown(evt) {
@@ -134,7 +132,7 @@ class HintForm extends React.Component {
                             id="hint-input"
                             type="text"
                             autoComplete="off"
-                            autoFocus="true"
+                            autoFocus={true}
                             onKeyDown={(evt) => this.onKeyDown(evt)}
                         />
                         <div className="bl-corner">
@@ -159,7 +157,7 @@ class HintForm extends React.Component {
     }
 }
 
-class MasterTarget extends React.Component {
+class MasterTarget extends Component<{data: FullState}> {
     render() {
         const {data} = this.props;
         const {master, closedWord} = data;
@@ -174,9 +172,10 @@ class MasterTarget extends React.Component {
     }
 }
 
-class ClosedWordForm extends React.Component {
+class ClosedWordForm extends ConnectedComponent {
     guessWord() {
-        this.props.socket.emit("guess-word", document.getElementById("closed-word-input").value);
+        const input = document.getElementById("closed-word-input") as HTMLInputElement;
+        this.props.socket.emit("guess-word", input.value);
     }
 
     onKeyDown(evt) {
@@ -193,7 +192,7 @@ class ClosedWordForm extends React.Component {
                     id="closed-word-input"
                     type="text"
                     autoComplete="off"
-                    autoFocus="true"
+                    autoFocus={true}
                     onKeyDown={(evt) => this.onKeyDown(evt)}
                 />
                 <div className="bl-corner">
@@ -213,8 +212,7 @@ class ClosedWordForm extends React.Component {
 }
 
 
-//TODO: add points and other data
-class ClosedWordResult extends React.Component {
+class ClosedWordResult extends Component<{data: FullState}> {
     render() {
         const {data} = this.props;
         const {wordGuessed, guessedWord, word, master, scoreChanges} = data;
@@ -246,7 +244,12 @@ class ClosedWordResult extends React.Component {
     }
 }
 
-class StatusBar extends React.Component {
+export class StatusBar extends Component<{
+    data: FullState,
+    socket: WebSocketChannel,
+    setTime: (time: number) => void,
+    setPhase2: any
+}> {
     render() {
         const {data, socket, setTime, setPhase2} = this.props;
         const {

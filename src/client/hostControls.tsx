@@ -1,16 +1,21 @@
-//import React from "react";
-//import ReactDOM from "react-dom"
+import React, { Component } from "react";
+import { t } from "./translation_ru";
 
-class HostControls extends React.Component {
+export class HostControls extends Component<{
+    data: FullState,
+    socket: WebSocketChannel,
+    refreshState: () => void
+}> {
+    debouncedEmitTimer?: ReturnType<typeof setTimeout>;
 
-    debouncedEmit() {
+    debouncedEmit(_messageType: string, _type: string, _value: number) {
         clearTimeout(this.debouncedEmitTimer);
         this.debouncedEmitTimer = setTimeout(() => {
             this.props.socket.emit.apply(this.props.socket, arguments);
         }, 100);
     }
 
-    changeParam(value, type) {
+    changeParam(value: number, type: string) {
         this.debouncedEmit("set-param", type, value);
     }
 
@@ -45,13 +50,10 @@ class HostControls extends React.Component {
     }
 
     clickRestart() {
-        if (!this.gameIsOver)
-            popup.confirm(
-                {content: "Restart? Are you sure?"},
-                (evt) => evt.proceed && this.props.socket.emit("restart")
-            );
-        else
-            this.props.socket.emit("restart")
+        popup.confirm(
+            {content: "Restart? Are you sure?"},
+            (evt) => evt.proceed && this.props.socket.emit("restart")
+        );
     }
 
     toggleTimed() {
@@ -69,7 +71,7 @@ class HostControls extends React.Component {
             isHost = data.hostId === data.userId,
             inProcess = data.phase !== 0 && !data.paused;
         return (
-            <div className="host-controls" onTouchStart={(e) => e.target.focus()}>
+            <div className="host-controls" onTouchStart={(e) => (e.target as HTMLElement).focus()}>
                 {data.timed ? (<div className="host-controls-menu">
                     <div className="little-controls">
                         <div className="game-settings">
