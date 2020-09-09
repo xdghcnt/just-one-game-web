@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Avatar } from './avatar' 
 import { Messy } from './hint'
-import { hyphenateSync } from "hyphen/ru";
 import { t } from "./translation_ru";
 
 class ProgressBar extends Component<{
@@ -100,7 +99,7 @@ class ClosedWord extends Component<{text: string, mistake?: boolean}> {
         return (
             <div className={cs("card closed-word", {mistake, back: !mistake && text == null})}>
                 {(text != null || mistake)
-                    ? <div>{hyphenateSync(text ? text : `(${t("empty")})`)}</div>
+                    ? <div>{window.hyphenate(text ? text : `(${t("empty")})`)}</div>
                     : <div className="card-logo"/>}
                 {this.props.children}
             </div>
@@ -108,7 +107,7 @@ class ClosedWord extends Component<{text: string, mistake?: boolean}> {
     }
 }
 
-class HintForm extends ConnectedComponent {
+class HintForm extends Component<{data: FullState, socket: WebSocketChannel}> {
     addHint() {
         const input = document.getElementById("hint-input") as HTMLInputElement;
         this.props.socket.emit("add-hint", input.value);
@@ -172,7 +171,7 @@ class MasterTarget extends Component<{data: FullState}> {
     }
 }
 
-class ClosedWordForm extends ConnectedComponent {
+class ClosedWordForm extends Component<{data: FullState, socket: WebSocketChannel}> {
     guessWord() {
         const input = document.getElementById("closed-word-input") as HTMLInputElement;
         this.props.socket.emit("guess-word", input.value);

@@ -104,7 +104,7 @@ class Player extends Component<{
     }
 }
 
-export class PlayerList extends ConnectedComponent {
+export class PlayerList extends Component<{data: FullState, socket: WebSocketChannel}> {
 
     joinPlayersClick(evt) {
         evt.stopPropagation();
@@ -166,7 +166,7 @@ class Spectator extends Component<{
     }
 }
 
-export class SpectatorList extends ConnectedComponent {
+export class SpectatorList extends Component<{data: FullState, socket: WebSocketChannel}> {
     joinSpectatorsClick(evt) {
         evt.stopPropagation();
         if (!this.props.data.teamsLocked)

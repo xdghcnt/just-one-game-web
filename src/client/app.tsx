@@ -13,9 +13,14 @@ declare global {
         emit(messageName: string, data?: any): any;
     }
 
+    const hyphenationPatternsRu: any;
+    const createHyphenator: any;
+
+
     interface Window {
         wssToken?: string;
         socket?: WebSocketWrapper;
+        hyphenate?: (text: string) => string;
     }
 
     type CommonRoomComponent =
@@ -56,9 +61,10 @@ declare global {
     }
 
     type GameCompState = HollowState | FullState | DisconnectedState;
-
-    class ConnectedComponent extends Component<{data: FullState, socket: WebSocketChannel}> {}
 }
+
+
+window.hyphenate = createHyphenator(hyphenationPatternsRu);
 
 interface WebSocketWrapper {
     of(channelName: string): WebSocketChannel;

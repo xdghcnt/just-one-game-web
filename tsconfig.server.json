@@ -2,6 +2,7 @@
     "extends": "./tsconfig.json",
     "exclude": ["src/client"],
     "compilerOptions": {
-        "outDir": "./lib"
+        "outDir": "./lib",
+        "module": "commonjs"
     }
 }

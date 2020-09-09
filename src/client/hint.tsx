@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { Avatar } from "./avatar";
-import { hyphenateSync } from "hyphen/ru";
 
 class Hint extends Component<{
     player: string,
@@ -22,7 +21,7 @@ class Hint extends Component<{
         const banned = bannedHints[player];
         const isMaster = userId === master;
         const origText = hints[player] || (closedHints && closedHints[player]);
-        const text = origText ? hyphenateSync(origText) : null;
+        const text = origText ? window.hyphenate(origText) : null;
 
         const corners = [];
         if (!isMaster || playerLiked || (phase === 4 && !wordGuessed)) {
@@ -88,7 +87,7 @@ class Hint extends Component<{
     }
 }
 
-export class Hints extends ConnectedComponent {
+export class Hints extends Component<{data: FullState, socket: WebSocketChannel}> {
     render() {
         const {data, socket} = this.props;
         return (
