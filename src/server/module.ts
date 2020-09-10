@@ -1,16 +1,23 @@
-import { PlayerState, RoomState } from "../common/messages";
+//TODO: separate server setup, util, timer(?), lobby management and just-one specific game logic.
+
+import { UserId, PlayerState, RoomState } from "../common/messages";
 
 type Modify<T, R> = Omit<T, keyof R> & R;
 interface ServerRoomState extends Modify<RoomState, {
-    spectators: Set<string>;
-    inactivePlayers: Set<string>;
-    onlinePlayers: Set<string>;
-    players: Set<string>;
-    readyPlayers: Set<string>;
-    playerHints: Set<string>;
-  }> {}
+    spectators: Set<UserId>;
+    inactivePlayers: Set<UserId>;
+    onlinePlayers: Set<UserId>;
+    players: Set<UserId>;
+    readyPlayers: Set<UserId>;
+    playerHints: Set<UserId>;
+}> {}
 
-function init(wsServer, path) {
+interface Snapshot {
+    room: RoomState,
+    state: PlayerState
+}
+
+function init(wsServer: any, path: string) {
     const
         fs = require("fs"),
         randomColor = require('randomcolor'),
@@ -29,7 +36,11 @@ function init(wsServer, path) {
     const defaultWords = JSON.parse(fs.readFileSync(`${registry.config.appDir}/moderated-words.json`));
 
     class GameState extends wsServer.users.RoomState {
-        constructor(hostId, hostData, userRegistry) {
+        room: ServerRoomState;
+        state: PlayerState;
+        eventHandlers: Record<string, (userId: UserId, ...args: any[]) => void>
+        
+        constructor(hostId: string, hostData: any, userRegistry: any) {
             super(hostId, hostData, userRegistry);
             const
                 room: ServerRoomState = {
@@ -72,12 +83,21 @@ function init(wsServer, path) {
                     closedHints: {},
                     closedWord: null
                 };
+            const setParamTypes = [
+                "masterTime",
+                "playerTime",
+                "revealTime",
+                "teamTime",
+                "wordsLevel",
+                "goal"
+            ] as const;
+            type SetParamType = typeof setParamTypes[number];
             this.room = room;
             this.state = state;
             this.lastInteraction = new Date();
-            let interval;
+            let interval: NodeJS.Timeout;
             const
-                send = (target, event, data) => userRegistry.send(target, event, data),
+                send = (target: any, event: string, data: object) => userRegistry.send(target, event, data),
                 update = () => send(room.onlinePlayers, "state", room),
                 updatePlayerState = () => {
                     [...room.onlinePlayers].forEach(playerId => {
@@ -97,10 +117,14 @@ function init(wsServer, path) {
                     });
                 },
                 getNextPlayer = () => {
-                    const nextPlayerIndex = [...room.players].indexOf(room.master) + 1;
-                    return [...room.players][(room.players.size === nextPlayerIndex) ? 0 : nextPlayerIndex];
+                    if (room.master === null) {
+                        return [...room.players][0];
+                    } else {
+                        const nextPlayerIndex = [...room.players].indexOf(room.master) + 1;
+                        return [...room.players][(room.players.size === nextPlayerIndex) ? 0 : nextPlayerIndex];
+                    }
                 },
-                processInactivity = (playerId, master=false) => {
+                processInactivity = (playerId: UserId, master=false) => {
                     if (room.inactivePlayers.has(playerId)) {
                         if (master)
                             room.masterKicked = true;
@@ -125,7 +149,7 @@ function init(wsServer, path) {
                         }
                         let time = new Date();
                         interval = setInterval(() => {
-                            if (!room.paused) {
+                            if (!room.paused && room.time !== null) {
                                 room.time -= (new Date()).getTime() - time.getTime();
                                 time = new Date();
                                 if (room.time <= 0) {
@@ -142,13 +166,15 @@ function init(wsServer, path) {
                                         }
                                     } else if (room.phase === 2) {
                                         startMasterPhase();
-                                    } else if (room.phase === 3) {
+                                    } else if (room.phase === 3 && room.master !== null) {
                                         processInactivity(room.master, true);
                                         endRound();
                                     } else if (room.phase === 4) {
-                                        if (!room.playerLiked && room.wordGuessed) {
+                                        if (!room.playerLiked && room.wordGuessed && room.master !== null) {
                                             changeScore(room.master, -2);
-                                            processInactivity(room.master, true);
+                                            if (room.master !== null) {
+                                                processInactivity(room.master, true);
+                                            }
                                         }
                                         startRound();
                                     }
@@ -182,7 +208,7 @@ function init(wsServer, path) {
                     update();
                     updatePlayerState();
                 },
-                changeScore = (player, change) => {
+                changeScore = (player: UserId, change: number) => {
                     room.playerScores[player] = room.playerScores[player] || 0;
                     room.playerScores[player] += change;
                     room.scoreChanges[player] = room.scoreChanges[player] || 0;
@@ -217,7 +243,7 @@ function init(wsServer, path) {
                     if (room.players.size >= PLAYERS_MIN) {
                         checkScores();
                         if (!room.playerWin || initial) {
-                            if (!initial && !room.masterKicked)
+                            if ((!initial && !room.masterKicked) || room.master === null)
                                 room.master = getNextPlayer();
                             room.masterKicked = false;
                             room.wordGuessed = null;
@@ -245,7 +271,9 @@ function init(wsServer, path) {
                 startTeamPhase = () => {
                     room.phase = 2;
                     room.readyPlayers.clear();
-                    room.readyPlayers.add(room.master);
+                    if (room.master !== null) {
+                        room.readyPlayers.add(room.master);
+                    }
                     room.playerHints = new JSONSet(shuffleArray([...room.playerHints]));
                     startTimer();
                     update();
@@ -268,7 +296,7 @@ function init(wsServer, path) {
                     update();
                     updatePlayerState();
                 },
-                removePlayer = (playerId) => {
+                removePlayer = (playerId: UserId) => {
                     if (room.master === playerId)
                         room.master = getNextPlayer();
                     room.players.delete(playerId);
@@ -293,8 +321,16 @@ function init(wsServer, path) {
                     }
                     if (room.playerWin)
                         endGame();
-                },
-                userJoin = (data) => {
+                };
+
+            interface UserJoinData {
+                userId: UserId,
+                userName: string,
+                avatarId: string,
+            }
+
+            const
+                userJoin = (data: UserJoinData) => {
                     const user = data.userId;
                     if (!room.playerNames[user])
                         room.spectators.add(user);
@@ -302,7 +338,7 @@ function init(wsServer, path) {
                     room.onlinePlayers.add(user);
                     room.playerNames[user] = data.userName.substr && data.userName.substr(0, 60);
                     if (data.avatarId) {
-                        fs.stat(`${registry.config.appDir || rootDir}/public/avatars/${user}/${data.avatarId}.png`, (err) => {
+                        fs.stat(`${registry.config.appDir || rootDir}/public/avatars/${user}/${data.avatarId}.png`, (err: Error) => {
                             if (!err) {
                                 room.playerAvatars[user] = data.avatarId;
                                 update()
@@ -312,7 +348,7 @@ function init(wsServer, path) {
                     update();
                     updatePlayerState();
                 },
-                userLeft = (user) => {
+                userLeft = (user: UserId) => {
                     room.onlinePlayers.delete(user);
                     if (room.spectators.has(user))
                         delete room.playerNames[user];
@@ -321,7 +357,7 @@ function init(wsServer, path) {
                         stopGame();
                     update();
                 },
-                userEvent = (user, event, data) => {
+                userEvent = (user: UserId, event: string, data: any[]) => {
                     this.lastInteraction = new Date();
                     try {
                         if (this.eventHandlers[event])
@@ -335,7 +371,7 @@ function init(wsServer, path) {
             this.userLeft = userLeft;
             this.userEvent = userEvent;
             this.eventHandlers = {
-                "update-avatar": (user, id) => {
+                "update-avatar": (user, id: string) => {
                     room.playerAvatars[user] = id;
                     update()
                 },
@@ -344,7 +380,7 @@ function init(wsServer, path) {
                         room.teamsLocked = !room.teamsLocked;
                     update();
                 },
-                "add-hint": (user, hint) => {
+                "add-hint": (user, hint: string) => {
                     if (room.phase === 1 && room.players.has(user)
                         && room.master !== user && !room.readyPlayers.has(user) && hint) {
                         if (room.players.size >= PLAYERS_MIN) {
@@ -360,25 +396,25 @@ function init(wsServer, path) {
                         } else stopGame();
                     }
                 },
-                "toggle-hint-ban": (user, hintUser) => {
+                "toggle-hint-ban": (user, hintUser: UserId) => {
                     if (room.phase === 2 && room.players.has(user) && room.master !== user && state.closedHints[hintUser]) {
                         room.bannedHints[hintUser] = !room.bannedHints[hintUser];
                         update();
                     }
                 },
-                "set-like": (user, likedUser) => {
+                "set-like": (user, likedUser: UserId) => {
                     if (room.phase === 4 && !room.playerLiked && room.wordGuessed) {
                         room.playerLiked = likedUser;
                         changeScore(likedUser, 2);
-                        if (room.time >= 5000)
+                        if (room.time && room.time >= 5000)
                             room.time = 5000;
                         checkScores();
                         update();
                     }
                 },
-                "guess-word": (user, word) => {
+                "guess-word": (user, word: string) => {
                     if (room.phase === 3 && room.master === user && word) {
-                        if (state.closedWord.toLowerCase() === word.toLowerCase().trim()) {
+                        if (state.closedWord?.toLowerCase() === word.toLowerCase().trim()) {
                             room.wordGuessed = true;
                             changeScore(room.master, 2);
                         }
@@ -426,15 +462,15 @@ function init(wsServer, path) {
                     }
                     update();
                 },
-                "set-param": (user, type, value) => {
-                    if (user === room.hostId && ~[
-                        "masterTime",
-                        "playerTime",
-                        "revealTime",
-                        "teamTime",
-                        "wordsLevel",
-                        "goal"].indexOf(type) && (type !== "wordsLevel" || (value <= 4 && value >= 1)) && !isNaN(parseInt(value)))
-                        room[type] = parseFloat(value);
+                "set-param": (user, type: SetParamType, value: number) => {
+                    if (
+                        user === room.hostId
+                        && setParamTypes.includes(type)
+                        && typeof value !== 'number'
+                        && (type !== "wordsLevel" || (value <= 4 && value >= 1))
+                    ) {
+                        room[type] = value;
+                    }
                     update();
                 },
                 "change-name": (user, value) => {
@@ -497,30 +533,21 @@ function init(wsServer, path) {
             };
         }
 
-        setSnapshot(snapshot) {
-            Object.assign(this.room, snapshot.room);
-            Object.assign(this.state, snapshot.state);
-            this.room.paused = true;
-            this.room.inactivePlayers = new JSONSet(this.room.inactivePlayers);
-            this.room.onlinePlayers = new JSONSet();
-            this.room.spectators = new JSONSet();
-            this.room.players = new JSONSet(this.room.players);
-            this.room.readyPlayers = new JSONSet(this.room.readyPlayers);
-            this.room.playerHints = new JSONSet(this.room.playerHints);
-            this.room.onlinePlayers.clear();
+        setSnapshot({room, state}: Snapshot) {
+            Object.assign(this.room, room, {
+                paused: true,
+                inactivePlayers: new JSONSet(room.inactivePlayers),
+                onlinePlayers: new JSONSet(),
+                spectators: new JSONSet(),
+                players: new JSONSet(room.players),
+                readyPlayers: new JSONSet(room.readyPlayers),
+                playerHints: new JSONSet(room.playerHints)
+            });
+            Object.assign(this.state, state);
         }
     }
 
-    function makeId() {
-        let text = "";
-        const possible = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-        for (let i = 0; i < 5; i++)
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-        return text;
-    }
-
-    function shuffleArray(array) {
+    function shuffleArray(array: any[]) {
         let currentIndex = array.length, temporaryValue, randomIndex;
         while (0 !== currentIndex) {
             randomIndex = Math.floor(Math.random() * currentIndex);
@@ -532,12 +559,8 @@ function init(wsServer, path) {
         return array;
     }
 
-    function getRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1) + min);
-    }
-
     class JSONSet extends Set {
-        constructor(iterable=[]) {
+        constructor(iterable: any[]=[]) {
             super(iterable)
         }
 

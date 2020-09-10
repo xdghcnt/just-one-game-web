@@ -1,5 +1,5 @@
-export const t = (eng) => {
-    const translations = {
+export const t = (eng: string): string => {
+    const translations: Record<string, string> = {
         'Spectators': 'Наблюдают',
         'Enter': 'Войти',
         'Not enough players (minimum 3)': 'Слишком мало игроков (минимум 3)',

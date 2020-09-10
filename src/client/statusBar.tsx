@@ -9,10 +9,9 @@ class ProgressBar extends Component<{
     setPhase2: any
 }> {
     timerTimeout?: ReturnType<typeof setTimeout>;
-    timerSound?: HTMLAudioElement;
+    timerSound = new Audio("/just-one/tick.mp3");
 
     componentDidMount() {
-        this.timerSound = new Audio("/just-one/tick.mp3");
         this.timerSound.volume = 0.4;
         const {timed, time} = this.props.data;
         if (timed && time !== null) {
@@ -21,30 +20,37 @@ class ProgressBar extends Component<{
         this.props.setPhase2(() => this.progressBarUpdate(0, 100));
     }
 
-    updateTimer(time) {
+    updateTimer(time: number) {
         const data = this.props.data
-        const timeTotal = {
+        const phaseTimes: Record<number, number> = {
             1: data.playerTime,
             2: data.teamTime,
             3: data.masterTime,
             4: data.revealTime,
-        }[data.phase] * 1000;
+        };
+        const timeTotal = phaseTimes[data.phase] * 1000;
         this.progressBarUpdate(timeTotal - time, timeTotal);
     }
 
-    progressBarUpdate(x, outOf) {
-        const percent = (1 - x / outOf) * 100 + '%'
-        document.getElementById('timer-progress-bar').style.width = percent;
+    progressBarUpdate(x: number, outOf: number) {
+        const percent = (1 - x / outOf) * 100 + '%';
+        const pbEl = document.getElementById('timer-progress-bar');
+        if (pbEl) {
+            pbEl.style.width = percent;
+        }
     }
 
     render() {
         const {data, setTime} = this.props;
 
-        clearTimeout(this.timerTimeout);
+        //TODO: simplify timer logic and dependencies
+        if (this.timerTimeout !== undefined) {
+            clearTimeout(this.timerTimeout);
+        }
         if (data.phase !== 0 && data.timed) {
             let timeStart = new Date();
             this.timerTimeout = setTimeout(() => {
-                if (data.timed && !data.paused) {
+                if (data.timed && !data.paused && data.time !== null) {
                     let prevTime = data.time,
                         time = prevTime - ((new Date).getTime() - timeStart.getTime());
                     setTime(time);
@@ -93,7 +99,7 @@ class Title extends Component<{text: string}> {
     }
 }
 
-class ClosedWord extends Component<{text: string, mistake?: boolean}> {
+class ClosedWord extends Component<{text: string | null, mistake?: boolean}> {
     render() {
         const {text, mistake} = this.props;
         return (
@@ -113,8 +119,11 @@ class HintForm extends Component<{data: FullState, socket: WebSocketChannel}> {
         this.props.socket.emit("add-hint", input.value);
     }
 
-    onKeyDown(evt) {
-        !evt.stopPropagation() && evt.key === "Enter" && this.addHint()
+    onKeyDown(evt: React.KeyboardEvent<HTMLInputElement>) {
+        evt.stopPropagation();
+        if (evt.key === "Enter") {
+            this.addHint();
+        }
     }
 
     render() {
@@ -177,8 +186,11 @@ class ClosedWordForm extends Component<{data: FullState, socket: WebSocketChanne
         this.props.socket.emit("guess-word", input.value);
     }
 
-    onKeyDown(evt) {
-        !evt.stopPropagation() && evt.key === "Enter" && this.guessWord()
+    onKeyDown(evt: React.KeyboardEvent<HTMLInputElement>) {
+        evt.stopPropagation();
+        if (evt.key === "Enter") {
+            this.guessWord();
+        }
     }
 
     render() {
@@ -215,8 +227,7 @@ class ClosedWordResult extends Component<{data: FullState}> {
     render() {
         const {data} = this.props;
         const {wordGuessed, guessedWord, word, master, scoreChanges} = data;
-
-        if (wordGuessed) {
+        if (master && wordGuessed) {
             return (
                 <ClosedWord text={word}>
                     <div className="tl-corner">
@@ -229,17 +240,20 @@ class ClosedWordResult extends Component<{data: FullState}> {
                     </div>
                 </ClosedWord>
             )
+        } else if (guessedWord) {
+            return (
+                <div className="closed-word-result">
+                    <ClosedWord text={word}/>
+                    <ClosedWord text={guessedWord} mistake={true}>
+                        <div className="bl-corner">
+                            <Avatar data={data} player={master}/>
+                        </div>
+                    </ClosedWord>
+                </div>
+            )
+        } else {
+            return null;
         }
-        return (
-            <div className="closed-word-result">
-                <ClosedWord text={word}/>
-                <ClosedWord text={guessedWord} mistake={true}>
-                    <div className="bl-corner">
-                        <Avatar data={data} player={master}/>
-                    </div>
-                </ClosedWord>
-            </div>
-        )
     }
 }
 
@@ -296,7 +310,7 @@ export class StatusBar extends Component<{
             if (isMaster) {
                 content = <ClosedWordForm data={data} socket={socket}/>;
                 subtitle = t("Now try guess the original word");
-            } else {
+            } else if (master) {
                 content = <MasterTarget data={data}/>;
                 subtitle = t('Now ') + playerNames[master] + t(' should guess original word');
             }

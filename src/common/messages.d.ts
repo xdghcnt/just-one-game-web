@@ -1,8 +1,10 @@
+type UserId = string;
+
 //client:init
 export interface InitUserArgs {
     avatarId?: string; 
     roomId?: string;
-    userId?: string;
+    userId?: UserId;
     token?: string;
     userName?: string;
     wssToken?: string;
@@ -11,24 +13,24 @@ export interface InitUserArgs {
 
 export interface RoomState {
     inited: boolean;
-    hostId: string;
-    spectators: string[];
-    playerNames: object;
-    playerColors: object;
-    inactivePlayers: string[];
-    onlinePlayers: string[];
-    master: string | null;
-    players: string[];
-    readyPlayers: string[];
-    playerHints: string[];
-    playerScores: object;
-    scoreChanges: object;
+    hostId: UserId;
+    spectators: UserId[];
+    playerNames: Record<UserId, string>;
+    playerColors: Record<UserId, string>;
+    inactivePlayers: UserId[];
+    onlinePlayers: UserId[];
+    master: UserId | null;
+    players: UserId[];
+    readyPlayers: UserId[];
+    playerHints: UserId[];
+    playerScores: Record<UserId, number>;
+    scoreChanges: Record<UserId, number>;
     teamsLocked: boolean;
     timed: boolean;
     word: string | null;
     guessedWord: string | null;
-    hints: object;
-    bannedHints: object;
+    hints: Record<UserId, string>;
+    bannedHints: Record<UserId, boolean>;
     rounds: number;
     phase: number;
     playerTime: number;
@@ -39,7 +41,7 @@ export interface RoomState {
     wordsLevel: number;
     time: number | null;
     paused: boolean;
-    playerAvatars: object;
+    playerAvatars: Record<UserId, string>;
     playerLiked: string | null;
     playerWin: string | null;
     wordGuessed: boolean | null;
@@ -47,6 +49,6 @@ export interface RoomState {
 }
 
 export interface PlayerState {
+    closedHints: Record<UserId, string>;
     closedWord: string | null;
-    closedHints: object | null;
 }

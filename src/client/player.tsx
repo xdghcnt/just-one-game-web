@@ -5,9 +5,9 @@ import { t } from "./translation_ru";
 class PlayerHostControls extends Component<{
     data: FullState,
     socket: WebSocketChannel,
-    id: string
+    id: UserId
 }> {
-    removePlayer(id, evt) {
+    removePlayer(id: UserId, evt: React.MouseEvent<HTMLElement, MouseEvent>) {
         evt.stopPropagation();
         popup.confirm(
             {content: `Removing ${this.props.data.playerNames[id]}?`},
@@ -15,7 +15,7 @@ class PlayerHostControls extends Component<{
         );
     }
 
-    giveHost(id, evt) {
+    giveHost(id: UserId, evt: React.MouseEvent<HTMLElement, MouseEvent>) {
         evt.stopPropagation();
         popup.confirm(
             {content: `Give host ${this.props.data.playerNames[id]}?`},
@@ -59,7 +59,7 @@ class Player extends Component<{
 }> {
 
     clickSaveAvatar() {
-        document.getElementById("avatar-input").click();
+        document.getElementById("avatar-input")?.click();
     }
 
 
@@ -106,7 +106,7 @@ class Player extends Component<{
 
 export class PlayerList extends Component<{data: FullState, socket: WebSocketChannel}> {
 
-    joinPlayersClick(evt) {
+    joinPlayersClick(evt: React.MouseEvent<HTMLDivElement, MouseEvent>) {
         evt.stopPropagation();
         if (!this.props.data.teamsLocked)
             this.props.socket.emit("players-join");
@@ -167,7 +167,7 @@ class Spectator extends Component<{
 }
 
 export class SpectatorList extends Component<{data: FullState, socket: WebSocketChannel}> {
-    joinSpectatorsClick(evt) {
+    joinSpectatorsClick(evt: React.MouseEvent<HTMLDivElement, MouseEvent>) {
         evt.stopPropagation();
         if (!this.props.data.teamsLocked)
             this.props.socket.emit("spectators-join");

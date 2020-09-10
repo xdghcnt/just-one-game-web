@@ -2,16 +2,16 @@ import React, { Component } from "react";
 import { Avatar } from "./avatar";
 
 class Hint extends Component<{
-    player: string,
+    player: UserId,
     data: FullState,
     socket: WebSocketChannel,
     index: number
 }> {
-    toggleHintBan(user) {
+    toggleHintBan(user: UserId) {
         this.props.socket.emit("toggle-hint-ban", user);
     }
 
-    setLike(user) {
+    setLike(user: UserId) {
         this.props.socket.emit("set-like", user);
     }
 
@@ -100,8 +100,13 @@ export class Hints extends Component<{data: FullState, socket: WebSocketChannel}
     }
 }
 
+type Point = {
+    x: number;
+    y: number;
+}
+
 export class Messy {
-    static genZigzag() {
+    static genZigzag(): Point[] {
         let x = 0;
         const points = [{x, y: Math.random()}];
         const avgSpikes = 20;
@@ -113,11 +118,12 @@ export class Messy {
         return points;
     }
 
-    static frac2perc({x, y}, top) {
+    static frac2perc(p: Point, top: boolean) {
+        const { x, y } = p;
         const maxDent = 0.03;
         const xDent = (top) ? x : 1 - x;
         const yDent = (top) ? maxDent * y : 1 - maxDent * y;
-        const n2text = (n) => (n * 100).toFixed(1) + '%';
+        const n2text = (n: number) => (n * 100).toFixed(1) + '%';
         return n2text(xDent) + ' ' + n2text(yDent);
     }
 
@@ -142,10 +148,10 @@ export class Messy {
         return `${(Math.random() - 0.5) * 200}% ${(Math.random() - 0.5) * 200}%`;
     }
 
-    static cache = {}
-    static cacheLogo = {}
+    static cache: Record<string, React.CSSProperties> = {}
+    static cacheLogo: Record<string, React.CSSProperties> = {}
 
-    static getStyle(key: string): object {
+    static getStyle(key: string): React.CSSProperties {
         if (!this.cache.hasOwnProperty(key)) {
             this.cache[key] = {
                 clipPath: this.genPath(),
@@ -156,7 +162,7 @@ export class Messy {
         return this.cache[key];
     }
 
-    static getLogoStyle(key: string): object {
+    static getLogoStyle(key: string): React.CSSProperties {
         if (!this.cacheLogo.hasOwnProperty(key)) {
             this.cacheLogo[key] = {
                 transform: this.genLogoTransform()

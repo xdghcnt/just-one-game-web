@@ -10,17 +10,17 @@ import { InitUserArgs, RoomState, PlayerState } from '../common/messages';
 declare global {
     interface WebSocketChannel {
         on(messageName: string, callback: (d: any) => any): WebSocketChannel;
-        emit(messageName: string, data?: any): any;
+        emit(messageName: string, ...data: any[]): any;
     }
 
     const hyphenationPatternsRu: any;
     const createHyphenator: any;
 
-
     interface Window {
-        wssToken?: string;
-        socket?: WebSocketWrapper;
-        hyphenate?: (text: string) => string;
+        wssToken: string;
+        socket: WebSocketWrapper;
+        hyphenate: (text: string) => string;
+        CommonRoom: CommonRoomComponent;
     }
 
     type CommonRoomComponent =
@@ -29,12 +29,14 @@ declare global {
 
     const CommonRoom: CommonRoomComponent;
 
+    type PopupEvt = {
+        proceed?: boolean;
+        input_value?: string;
+    }
+
     type popupModal = (
         options: object,
-        callback?: (popupReturnObj: {
-            proceed?: boolean,
-            input_value?: string
-        }) => any
+        callback?: (evt: PopupEvt) => any
     ) => void;
 
     const popup: {
@@ -45,13 +47,15 @@ declare global {
 
     const cs: (...args: any[]) => string;
 
+    type UserId = string;
+
     type HollowState = {
         inited: false;
     }
 
     type FullState = RoomState & PlayerState & {
         inited: true;
-        userId: string;
+        userId: UserId;
     }
 
     type DisconnectedState = Partial<RoomState> & {
@@ -62,7 +66,6 @@ declare global {
 
     type GameCompState = HollowState | FullState | DisconnectedState;
 }
-
 
 window.hyphenate = createHyphenator(hyphenationPatternsRu);
 
@@ -83,28 +86,26 @@ function makeId() {
 
 class Game extends Component<{}, GameCompState> {
 
-    userId?: string;
-    userToken?: string;
-    socket?: WebSocketChannel;
-    masterSound?: HTMLAudioElement;
-    storySound?: HTMLAudioElement;
-    revealSound?: HTMLAudioElement;
-    tapSound?: HTMLAudioElement;
     phase2StatusBar?: () => void;
+    
+    userId = localStorage.dixitUserId;
+    userToken = localStorage.dixitUserToken;
+    socket = window.socket.of("just-one");
+    sounds: Record<string, HTMLAudioElement> = {};
 
-    constructor(props) {
+    constructor(props: object) {
         super(props);
         this.state = {
             inited: false
-        };
+        }
     }
 
     componentDidMount() {
         const initArgs : InitUserArgs = {
             avatarId: localStorage.avatarId,
             roomId: location.hash.substr(1),
-            userId: this.userId = localStorage.dixitUserId,
-            token: this.userToken = localStorage.dixitUserToken,
+            userId: this.userId,
+            token: this.userToken,
             userName: localStorage.userName,
             wssToken: window.wssToken
         };
@@ -117,27 +118,29 @@ class Game extends Component<{}, GameCompState> {
             localStorage.dixitUserToken = makeId();
         }
         if (!location.hash)
-            history.replaceState(undefined, undefined, location.origin + location.pathname + "#" + makeId());
+            history.replaceState(undefined, '', location.origin + location.pathname + "#" + makeId());
         else
-            history.replaceState(undefined, undefined, location.origin + location.pathname + location.hash);
+            history.replaceState(undefined, '', location.origin + location.pathname + location.hash);
         if (localStorage.acceptDelete) {
             initArgs.acceptDelete = localStorage.acceptDelete;
             delete localStorage.acceptDelete;
         }
-        this.socket = window.socket.of("just-one");
-        // this.player = {cards: []}; //Seems deprecated.
         this.socket.on("state", (state: RoomState) => {
-            CommonRoom.processCommonRoom(state, this.state);
+            //Temporary hack to accommodate slow-loading standalone babel script
+            setTimeout(() => {
+                CommonRoom.processCommonRoom(state, this.state);
+                this.refreshState();
+            }, 1000);
             if (this.state.inited) {
                 if (this.state.phase && state.phase !== 0 && !parseInt(localStorage.muteSounds)) {
                     if (this.state.master !== this.userId && state.master === this.userId)
-                    this.masterSound.play();
+                        this.sounds.master.play();
                     else if (this.state.phase === 1 && state.phase === 2)
-                    this.storySound.play();
+                        this.sounds.start.play();
                     else if (this.state.phase === 2 && state.phase === 3)
-                    this.revealSound.play();
+                        this.sounds.reveal.play();
                     else if (state.phase === 2 && this.state.readyPlayers.length !== state.readyPlayers.length)
-                    this.tapSound.play();
+                        this.sounds.tap.play();
                 }
                 if (this.state.phase !== 2 && state.phase === 2)
                     this.phase2StatusBar && this.phase2StatusBar();
@@ -179,17 +182,20 @@ class Game extends Component<{}, GameCompState> {
         });
         document.title = `Just one - ${initArgs.roomId}`;
         this.socket.emit("init", initArgs);
-        this.tapSound = new Audio("/just-one/tap.mp3");
-        this.tapSound.volume = 0.3;
-        this.storySound = new Audio("/just-one/start.mp3");
-        this.storySound.volume = 0.4;
-        this.revealSound = new Audio("/just-one/reveal.mp3");
-        this.revealSound.volume = 0.3;
-        this.masterSound = new Audio("/just-one/master.mp3");
-        this.masterSound.volume = 0.7;
+
+        const soundVolume: Record<string, number> = {
+            master: 0.7,
+            start: 0.4,
+            reveal: 0.3,
+            tap: 0.3
+        }
+        for (const name in soundVolume) {
+            this.sounds[name] = new Audio(`/just-one/${name}.mp3`);
+            this.sounds[name].volume = soundVolume[name];
+        }
     }
 
-    setTime(time) {
+    setTime(time: number) {
         this.setState(Object.assign({}, this.state, {time: time}));
     }
 
@@ -198,11 +204,11 @@ class Game extends Component<{}, GameCompState> {
     }
 
     //TODO: move to Hints component
-    getOptimalWidth({players}) {
-        const numCards = players.length - 1;
+    getOptimalWidth( numPlayers: number ): React.CSSProperties {
+        const numCards = numPlayers - 1;
         const contWidth = window.innerWidth - 20; //approximate
         if (numCards <= 6 || contWidth < 760) {
-            return null;
+            return {};
         } else {
             const cardWidth = 210 + 25; //approximate
             const originalNumCols = Math.floor(contWidth / cardWidth);
@@ -244,10 +250,10 @@ class Game extends Component<{}, GameCompState> {
                                 setTime={(time) => this.setTime(time)}
                                 //Notify about phase 2
                                 //https://stackoverflow.com/questions/37949981/call-child-method-from-parent#45582558
-                                setPhase2={cb => this.phase2StatusBar = cb}
+                                setPhase2={(cb: () => void) => this.phase2StatusBar = cb}
                             />
                         </div>
-                        <div className="main-row" style={this.getOptimalWidth(data)}>
+                        <div className="main-row" style={this.getOptimalWidth(data.players.length)}>
                             <Hints data={data} socket={socket} />
                         </div>
                         <AvatarSaver socket={socket}
@@ -257,7 +263,7 @@ class Game extends Component<{}, GameCompState> {
                         <HostControls data={data} socket={socket}
                             refreshState={() => this.refreshState()}
                         />
-                        <CommonRoom state={this.state} app={this}/>
+                        {window.CommonRoom && <CommonRoom state={this.state} app={this}/>}
                     </div>
                 </div>
             );

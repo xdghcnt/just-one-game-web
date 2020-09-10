@@ -8,10 +8,12 @@ export class HostControls extends Component<{
 }> {
     debouncedEmitTimer?: ReturnType<typeof setTimeout>;
 
-    debouncedEmit(_messageType: string, _type: string, _value: number) {
-        clearTimeout(this.debouncedEmitTimer);
+    debouncedEmit(messageType: string, paramType: string, value: number) {
+        if (typeof this.debouncedEmitTimer !== 'undefined') {
+            clearTimeout(this.debouncedEmitTimer);
+        }
         this.debouncedEmitTimer = setTimeout(() => {
-            this.props.socket.emit.apply(this.props.socket, arguments);
+            this.props.socket.emit(messageType, paramType, value)
         }, 100);
     }
 
@@ -23,7 +25,7 @@ export class HostControls extends Component<{
         const { data, socket } = this.props;
         const { playerNames, userId } = data;
         popup.prompt({content: "New name", value: playerNames[userId] || ""}, (evt) => {
-            if (evt.proceed && evt.input_value.trim()) {
+            if (evt.proceed && evt.input_value && evt.input_value.trim()) {
                 socket.emit("change-name", evt.input_value.trim());
                 localStorage.userName = evt.input_value.trim();
             }
