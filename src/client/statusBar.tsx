@@ -253,14 +253,16 @@ export class StatusBar extends Component<{ data: FullState, socket: WebSocketCha
         }
 
         return (
-            <div className="status-bar-wrap">
-                <div className="status-bar">
-                    <div className="aligner">
-                        {content}
+            <div className="main-row">
+                <div className="status-bar-wrap">
+                    <div className="status-bar">
+                        <div className="aligner">
+                            {content}
+                        </div>
+                        {subtitle && <div className="subtitle">{subtitle}</div>}
+                        {hasReady && <ReadyBtn isReady={isReady} socket={socket}/>}
+                        {timed && time !== null && <TimeLeftBar data={data} />}
                     </div>
-                    {subtitle && <div className="subtitle">{subtitle}</div>}
-                    {hasReady && <ReadyBtn isReady={isReady} socket={socket}/>}
-                    {timed && time !== null && <TimeLeftBar data={data} />}
                 </div>
             </div>
         )

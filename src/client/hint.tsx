@@ -88,13 +88,36 @@ class Hint extends Component<{
 }
 
 export class Hints extends Component<{data: FullState, socket: WebSocketChannel}> {
+    getOptimalWidth( numPlayers: number ): React.CSSProperties {
+        const numCards = numPlayers - 1;
+        const contWidth = window.innerWidth - 20; //approximate
+        if (numCards <= 6 || contWidth < 760) {
+            return {};
+        } else {
+            const cardWidth = 210 + 25; //approximate
+            const originalNumCols = Math.floor(contWidth / cardWidth);
+            const originalNumRows = Math.ceil(numCards / originalNumCols);
+            let numRows = originalNumRows;
+            let numCols = originalNumCols;
+            while (numRows === originalNumRows) {
+                numCols-- ;
+                numRows = Math.ceil(numCards / numCols);
+            };
+            numCols++;
+            return ({ maxWidth: numCols * cardWidth + 'px' });
+        }
+    }
+
     render() {
         const {data, socket} = this.props;
+        const optimalWidth = this.getOptimalWidth(data.players.length);
         return (
-            <div className="words">
-                {data.playerHints.map((player, i) => (
-                    <Hint player={player} data={data} socket={socket} key={i} index={i}/>
-                ))}
+            <div className="main-row" style={optimalWidth}>
+                <div className="words">
+                    {data.playerHints.map((player, i) => (
+                        <Hint player={player} data={data} socket={socket} key={i} index={i}/>
+                    ))}
+                </div>
             </div>
         );
     }

@@ -6,74 +6,7 @@ import { PlayerList, SpectatorList } from './player';
 import { HostControls } from './hostControls';
 import { AvatarSaver } from './avatar';
 import { InitUserArgs, RoomState, PlayerState } from '../common/messages';
-
-declare global {
-    interface WebSocketChannel {
-        on(messageName: string, callback: (d: any) => any): WebSocketChannel;
-        emit(messageName: string, ...data: any[]): any;
-    }
-
-    const hyphenationPatternsRu: any;
-    const createHyphenator: any;
-
-    interface Window {
-        wssToken: string;
-        socket: WebSocketWrapper;
-        hyphenate: (text: string) => string;
-        CommonRoom: CommonRoomComponent;
-    }
-
-    type CommonRoomComponent =
-        (new() => Component<{state: FullState, app: Game}>)
-        & { processCommonRoom: (serverState: any, clientState: any) => any };
-
-    const CommonRoom: CommonRoomComponent;
-
-    type PopupEvt = {
-        proceed?: boolean;
-        input_value?: string;
-    }
-
-    type popupModal = (
-        options: object,
-        callback?: (evt: PopupEvt) => any
-    ) => void;
-
-    const popup: {
-        alert: popupModal;
-        prompt: popupModal;
-        confirm: popupModal;
-    };
-
-    const cs: (...args: any[]) => string;
-
-    type UserId = string;
-
-    type HollowState = {
-        inited: false;
-    }
-
-    type FullState = RoomState & PlayerState & {
-        inited: true;
-        userId: UserId;
-    }
-
-    type DisconnectedState = Partial<RoomState> & {
-        inited: false;
-        disconnected: true;
-        disconnectReason: any;
-    }
-
-    type GameCompState = HollowState | FullState | DisconnectedState;
-}
-
-window.hyphenate = createHyphenator(hyphenationPatternsRu);
-
-interface WebSocketWrapper {
-    of(channelName: string): WebSocketChannel;
-    on(messageName: string, callback: (data: any) => any): void;
-}
-
+import './global';
 
 function makeId() {
     let text = "";
@@ -123,6 +56,7 @@ class Game extends Component<{}, GameCompState> {
             initArgs.acceptDelete = localStorage.acceptDelete;
             delete localStorage.acceptDelete;
         }
+        window.hyphenate = createHyphenator(hyphenationPatternsRu);
         this.socket.on("state", (state: RoomState) => {
             //Temporary hack to accommodate slow-loading standalone babel script
             setTimeout(() => {
@@ -183,28 +117,6 @@ class Game extends Component<{}, GameCompState> {
         this.setState(Object.assign({}, this.state));
     }
 
-    //TODO: move to Hints component
-    getOptimalWidth( numPlayers: number ): React.CSSProperties {
-        const numCards = numPlayers - 1;
-        const contWidth = window.innerWidth - 20; //approximate
-        if (numCards <= 6 || contWidth < 760) {
-            return {};
-        } else {
-            const cardWidth = 210 + 25; //approximate
-            const originalNumCols = Math.floor(contWidth / cardWidth);
-            const originalNumRows = Math.ceil(numCards / originalNumCols);
-            let numRows = originalNumRows;
-            let numCols = originalNumCols;
-            while (numRows === originalNumRows) {
-                numCols-- ;
-                numRows = Math.ceil(numCards / numCols);
-            };
-            numCols++;
-            return ({ maxWidth: numCols * cardWidth + 'px' });
-        }
-
-    }
-
     render() {
         if ('disconnected' in this.state && this.state.disconnected) {
             return (<div className="kicked">
@@ -217,20 +129,15 @@ class Game extends Component<{}, GameCompState> {
                 socket = this.socket;
             return (
                 <div className={cs("game", {timed: this.state.timed})}>
-                    <div className={
-                        cs("game-board", {
-                            active: this.state.inited,
-                            isMaster,
-                            teamsLocked: data.teamsLocked
+                    <div className={cs("game-board", {
+                        active: this.state.inited,
+                        isMaster,
+                        teamsLocked: data.teamsLocked
                     })}>
                         <SpectatorList data={data} socket={socket} />
                         <PlayerList data={data} socket={socket}  />
-                        <div className="main-row">
-                            <StatusBar data={data} socket={socket} />
-                        </div>
-                        <div className="main-row" style={this.getOptimalWidth(data.players.length)}>
-                            <Hints data={data} socket={socket} />
-                        </div>
+                        <StatusBar data={data} socket={socket} />
+                        <Hints data={data} socket={socket} />
                         <AvatarSaver socket={socket}
                             userId={this.userId}
                             userToken={this.userToken}
