@@ -350,14 +350,14 @@ body {
     opacity: 0.8;
 }
 
-#timer-progress-bar {
+#time-left-bar {
     background-color: #82ec5a;
     height: 5px;
     width: 100%;
     transition: width 1s linear;
 }
 
-.dark-theme #timer-progress-bar {
+.dark-theme #time-left-bar {
     background-color: #61984f;
 }
 

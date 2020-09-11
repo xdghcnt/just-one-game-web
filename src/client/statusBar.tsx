@@ -1,74 +1,8 @@
 import React, { Component } from "react";
-import { Avatar } from './avatar' 
-import { Messy } from './hint'
+import { Avatar } from './avatar';
+import { Messy } from './hint';
+import { TimeLeftBar } from './timeLeftBar';
 import { t } from "./translation_ru";
-
-class ProgressBar extends Component<{
-    data: FullState,
-    setTime: (time: number) => void,
-    setPhase2: any
-}> {
-    timerTimeout?: ReturnType<typeof setTimeout>;
-    timerSound = new Audio("/just-one/tick.mp3");
-
-    componentDidMount() {
-        this.timerSound.volume = 0.4;
-        const {timed, time} = this.props.data;
-        if (timed && time !== null) {
-            this.updateTimer(time);
-        }
-        this.props.setPhase2(() => this.progressBarUpdate(0, 100));
-    }
-
-    updateTimer(time: number) {
-        const data = this.props.data
-        const phaseTimes: Record<number, number> = {
-            1: data.playerTime,
-            2: data.teamTime,
-            3: data.masterTime,
-            4: data.revealTime,
-        };
-        const timeTotal = phaseTimes[data.phase] * 1000;
-        this.progressBarUpdate(timeTotal - time, timeTotal);
-    }
-
-    progressBarUpdate(x: number, outOf: number) {
-        const percent = (1 - x / outOf) * 100 + '%';
-        const pbEl = document.getElementById('timer-progress-bar');
-        if (pbEl) {
-            pbEl.style.width = percent;
-        }
-    }
-
-    render() {
-        const {data, setTime} = this.props;
-
-        //TODO: simplify timer logic and dependencies
-        if (this.timerTimeout !== undefined) {
-            clearTimeout(this.timerTimeout);
-        }
-        if (data.phase !== 0 && data.timed) {
-            let timeStart = new Date();
-            this.timerTimeout = setTimeout(() => {
-                if (data.timed && !data.paused && data.time !== null) {
-                    let prevTime = data.time,
-                        time = prevTime - ((new Date).getTime() - timeStart.getTime());
-                    setTime(time);
-                    this.updateTimer(time);
-                    if (![2, 4].includes(data.phase) && data.timed && time < 5000
-                        && ((Math.floor(prevTime / 1000) - Math.floor(time / 1000)) > 0) && !parseInt(localStorage.muteSounds))
-                        this.timerSound.play();
-                }
-                if (!data.timed)
-                    this.updateTimer(0);
-            }, 1000);
-        }
-
-        return (
-            <div id="timer-progress-bar"/>
-        )
-    }
-}
 
 class ReadyBtn extends Component<{isReady: boolean, socket: WebSocketChannel}> {
 
@@ -240,31 +174,23 @@ class ClosedWordResult extends Component<{data: FullState}> {
                     </div>
                 </ClosedWord>
             )
-        } else if (guessedWord) {
-            return (
-                <div className="closed-word-result">
-                    <ClosedWord text={word}/>
-                    <ClosedWord text={guessedWord} mistake={true}>
-                        <div className="bl-corner">
-                            <Avatar data={data} player={master}/>
-                        </div>
-                    </ClosedWord>
-                </div>
-            )
-        } else {
-            return null;
         }
+        return (
+            <div className="closed-word-result">
+                <ClosedWord text={word}/>
+                <ClosedWord text={guessedWord} mistake={true}>
+                    <div className="bl-corner">
+                        <Avatar data={data} player={master}/>
+                    </div>
+                </ClosedWord>
+            </div>
+        )
     }
 }
 
-export class StatusBar extends Component<{
-    data: FullState,
-    socket: WebSocketChannel,
-    setTime: (time: number) => void,
-    setPhase2: any
-}> {
+export class StatusBar extends Component<{ data: FullState, socket: WebSocketChannel }> {
     render() {
-        const {data, socket, setTime, setPhase2} = this.props;
+        const {data, socket} = this.props;
         const {
             phase, players, playerWin, timed, time, userId,
             master, readyPlayers, playerNames
@@ -334,9 +260,7 @@ export class StatusBar extends Component<{
                     </div>
                     {subtitle && <div className="subtitle">{subtitle}</div>}
                     {hasReady && <ReadyBtn isReady={isReady} socket={socket}/>}
-                    {timed && time !== null && (
-                        <ProgressBar data={data} setPhase2={setPhase2} setTime={setTime}/>
-                    )}
+                    {timed && time !== null && <TimeLeftBar data={data} />}
                 </div>
             </div>
         )

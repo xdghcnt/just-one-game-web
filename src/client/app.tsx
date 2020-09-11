@@ -86,14 +86,12 @@ function makeId() {
 
 class Game extends Component<{}, GameCompState> {
 
-    phase2StatusBar?: () => void;
-    
     userId = localStorage.dixitUserId;
     userToken = localStorage.dixitUserToken;
     socket = window.socket.of("just-one");
     sounds: Record<string, HTMLAudioElement> = {};
 
-    constructor(props: object) {
+    constructor(props: any) {
         super(props);
         this.state = {
             inited: false
@@ -142,8 +140,6 @@ class Game extends Component<{}, GameCompState> {
                     else if (state.phase === 2 && this.state.readyPlayers.length !== state.readyPlayers.length)
                         this.sounds.tap.play();
                 }
-                if (this.state.phase !== 2 && state.phase === 2)
-                    this.phase2StatusBar && this.phase2StatusBar();
             }
             this.setState(Object.assign({
                 userId: this.userId
@@ -165,18 +161,6 @@ class Game extends Component<{}, GameCompState> {
         this.socket.on("reload", () => {
             setTimeout(() => window.location.reload(), 3000);
         });
-        this.socket.on("auth-required", () => {
-            this.setState(Object.assign({}, this.state, {
-                userId: this.userId,
-                authRequired: true
-            }));
-            setTimeout(() => window.location.reload(), 3000)
-        });
-        this.socket.on("prompt-delete-prev-room", (roomList) => {
-            if (localStorage.acceptDelete =
-                prompt(`Limit for hosting rooms per IP was reached: ${roomList.join(", ")}. Delete one of rooms?`, roomList[0]))
-                location.reload();
-        });
         this.socket.on("ping", (id) => {
             this.socket.emit("pong", id);
         });
@@ -193,10 +177,6 @@ class Game extends Component<{}, GameCompState> {
             this.sounds[name] = new Audio(`/just-one/${name}.mp3`);
             this.sounds[name].volume = soundVolume[name];
         }
-    }
-
-    setTime(time: number) {
-        this.setState(Object.assign({}, this.state, {time: time}));
     }
 
     refreshState() {
@@ -246,12 +226,7 @@ class Game extends Component<{}, GameCompState> {
                         <SpectatorList data={data} socket={socket} />
                         <PlayerList data={data} socket={socket}  />
                         <div className="main-row">
-                            <StatusBar data={data} socket={socket}
-                                setTime={(time) => this.setTime(time)}
-                                //Notify about phase 2
-                                //https://stackoverflow.com/questions/37949981/call-child-method-from-parent#45582558
-                                setPhase2={(cb: () => void) => this.phase2StatusBar = cb}
-                            />
+                            <StatusBar data={data} socket={socket} />
                         </div>
                         <div className="main-row" style={this.getOptimalWidth(data.players.length)}>
                             <Hints data={data} socket={socket} />
