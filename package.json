@@ -1,7 +1,7 @@
 {
   "name": "just-one",
   "version": "0.0.0",
-  "main": "lib/module.js",
+  "main": "lib/server/module.js",
   "private": true,
   "files": [
     "lib",
@@ -18,7 +18,8 @@
     "@types/react-dom": "^16.9.8",
     "randomcolor": "0.5.3",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react-dom": "^16.13.1",
+    "use-debounce": "^4.0.0"
   },
   "devDependencies": {
     "ts-loader": "^8.0.3",

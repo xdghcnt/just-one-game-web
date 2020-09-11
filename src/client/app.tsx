@@ -95,6 +95,11 @@ class Game extends Component<{}, GameCompState> {
         this.socket.on("reload", () => {
             setTimeout(() => window.location.reload(), 3000);
         });
+        this.socket.on("prompt-delete-prev-room", (roomList) => {
+            if (localStorage.acceptDelete =
+                prompt(`Limit for hosting rooms per IP was reached: ${roomList.join(", ")}. Delete one of rooms?`, roomList[0]))
+                location.reload();
+        });
         this.socket.on("ping", (id) => {
             this.socket.emit("pong", id);
         });

@@ -1,6 +1,6 @@
 //TODO: separate server setup, util, timer(?), lobby management and just-one specific game logic.
 
-import { UserId, PlayerState, RoomState } from "../common/messages";
+import { UserId, PlayerState, RoomState, setParamTypes, SetParamType } from "../common/messages";
 
 type Modify<T, R> = Omit<T, keyof R> & R;
 interface ServerRoomState extends Modify<RoomState, {
@@ -26,7 +26,7 @@ function init(wsServer: any, path: string) {
         channel = "just-one",
         testMode = process.argv[2] === "debug",
         PLAYERS_MIN = testMode ? 1 : 3;
-    const rootDir = `${__dirname}/..`;
+    const rootDir = `${__dirname}/../..`;
 
     app.use("/just-one", wsServer.static(`${rootDir}/public`));
     if (registry.config.appDir)
@@ -83,15 +83,6 @@ function init(wsServer: any, path: string) {
                     closedHints: {},
                     closedWord: null
                 };
-            const setParamTypes = [
-                "masterTime",
-                "playerTime",
-                "revealTime",
-                "teamTime",
-                "wordsLevel",
-                "goal"
-            ] as const;
-            type SetParamType = typeof setParamTypes[number];
             this.room = room;
             this.state = state;
             this.lastInteraction = new Date();
@@ -466,7 +457,7 @@ function init(wsServer: any, path: string) {
                     if (
                         user === room.hostId
                         && setParamTypes.includes(type)
-                        && typeof value !== 'number'
+                        && typeof value === 'number'
                         && (type !== "wordsLevel" || (value <= 4 && value >= 1))
                     ) {
                         room[type] = value;

@@ -64,4 +64,9 @@ declare global {
     }
 
     type GameCompState = HollowState | FullState | DisconnectedState;
+
+    type FullProps = {
+        data: FullState;
+        socket: WebSocketChannel;
+    }
 }

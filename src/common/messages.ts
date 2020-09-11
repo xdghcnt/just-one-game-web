@@ -1,4 +1,4 @@
-type UserId = string;
+export type UserId = string;
 
 //client:init
 export interface InitUserArgs {
@@ -52,3 +52,13 @@ export interface PlayerState {
     closedHints: Record<UserId, string>;
     closedWord: string | null;
 }
+
+export const setParamTypes = [
+    "masterTime",
+    "playerTime",
+    "revealTime",
+    "teamTime",
+    "wordsLevel",
+    "goal"
+] as const;
+export type SetParamType = typeof setParamTypes[number];
