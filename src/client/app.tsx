@@ -6,6 +6,7 @@ import { PlayerList, SpectatorList } from './player';
 import { HostControls } from './hostControls';
 import { AvatarSaver } from './avatar';
 import { InitUserArgs, RoomState, PlayerState } from '../common/messages';
+import { SocketContext, DataContext } from './gameContext';
 import './global';
 
 function makeId() {
@@ -22,6 +23,8 @@ class Game extends Component<{}, GameCompState> {
     userId = localStorage.dixitUserId;
     userToken = localStorage.dixitUserToken;
     socket = window.socket.of("just-one");
+
+    
     sounds: Record<string, HTMLAudioElement> = {};
 
     constructor(props: any) {
@@ -128,28 +131,23 @@ class Game extends Component<{}, GameCompState> {
                 Disconnected{this.state.disconnectReason ? ` (${this.state.disconnectReason})` : ""}
             </div>);
         } else if (this.state.inited) {
-            const
-                data = this.state,
-                isMaster = data.master === data.userId,
-                socket = this.socket;
+            const { master, userId, teamsLocked, inited, timed } = this.state;
+            const isMaster = master === userId;
+            const Socket = SocketContext.Provider;
+            const Data = DataContext.Provider;
             return (
-                <div className={cs("game", {timed: this.state.timed})}>
-                    <div className={cs("game-board", {
-                        active: this.state.inited,
-                        isMaster,
-                        teamsLocked: data.teamsLocked
-                    })}>
-                        <SpectatorList data={data} socket={socket} />
-                        <PlayerList data={data} socket={socket}  />
-                        <StatusBar data={data} socket={socket} />
-                        <Hints data={data} socket={socket} />
-                        <AvatarSaver socket={socket}
-                            userId={this.userId}
-                            userToken={this.userToken}
-                        />
-                        <HostControls data={data} socket={socket}
-                            refreshState={() => this.refreshState()}
-                        />
+                <div className={cs("game", {timed})}>
+                    <div className={cs("game-board", { active: inited, isMaster, teamsLocked })}>
+                        <Socket value={this.socket}>
+                            <Data value={this.state}>
+                                <SpectatorList/>
+                                <PlayerList/>
+                                <StatusBar/>
+                                <Hints/>
+                                <AvatarSaver userToken={this.userToken} />
+                                <HostControls refreshState={() => this.refreshState()} />
+                            </Data>
+                        </Socket>
                         {window.CommonRoom && <CommonRoom state={this.state} app={this}/>}
                     </div>
                 </div>

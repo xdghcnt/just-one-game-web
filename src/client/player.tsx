@@ -1,197 +1,173 @@
-import React, { Component } from "react";
+import React, { useContext } from "react";
 import { Avatar } from './avatar';
+import { DataContext, SocketContext } from "./gameContext";
 import { t } from "./translation_ru";
 
-class PlayerHostControls extends Component<{
-    data: FullState,
-    socket: WebSocketChannel,
-    id: UserId
-}> {
-    removePlayer(id: UserId, evt: React.MouseEvent<HTMLElement, MouseEvent>) {
+type UserProps = { id: UserId };
+
+const PlayerHostControls = ({ id }: UserProps) => {
+    const { hostId, userId, playerNames } = useContext(DataContext);
+    const socket = useContext(SocketContext);
+    const isHost = hostId === userId;
+    const userHost = hostId === id;
+    const self = id === userId;
+
+    const removePlayer = (evt: React.MouseEvent<HTMLElement, MouseEvent>) => {
         evt.stopPropagation();
         popup.confirm(
-            {content: `Removing ${this.props.data.playerNames[id]}?`},
-            (evt) => evt.proceed && this.props.socket.emit("remove-player", id)
+            {content: `Removing ${playerNames[id]}?`},
+            (evt) => evt.proceed && socket.emit("remove-player", id)
         );
     }
 
-    giveHost(id: UserId, evt: React.MouseEvent<HTMLElement, MouseEvent>) {
+    const giveHost = (evt: React.MouseEvent<HTMLElement, MouseEvent>) => {
         evt.stopPropagation();
         popup.confirm(
-            {content: `Give host ${this.props.data.playerNames[id]}?`},
-            (evt) => evt.proceed && this.props.socket.emit("give-host", id))
-        ;
+            {content: `Give host ${playerNames[id]}?`},
+            (evt) => evt.proceed && socket.emit("give-host", id)
+        );
     }
 
-    render() {
-        const
-            data = this.props.data,
-            id = this.props.id;
-        return (
-            <div className="player-host-controls">
-                {(data.hostId === data.userId && data.userId !== id) ? (
-                    <i className="material-icons host-button"
-                       title="Give host"
-                       onClick={(evt) => this.giveHost(id, evt)}>
-                        vpn_key
-                    </i>) : ""}
-                {(data.hostId === data.userId && data.userId !== id) ? (
-                    <i className="material-icons host-button"
-                       title="Remove"
-                       onClick={(evt) => this.removePlayer(id, evt)}>
-                        delete_forever
-                    </i>) : ""}
-                {(data.hostId === id) ? (
-                    <i className="material-icons host-button inactive"
-                       title="Game host">
-                        stars
-                    </i>
-                ) : ""}
-            </div>
-        )
-    }
+    return (
+        <div className="player-host-controls">
+            {isHost && !self && (<>
+                <i className="material-icons host-button"
+                    title="Give host"
+                    onClick={giveHost}>
+                    vpn_key
+                </i>
+                <i className="material-icons host-button"
+                    title="Remove"
+                    onClick={removePlayer}>
+                    delete_forever
+                </i>
+            </>)}
+            {userHost && (
+                <i className="material-icons host-button inactive"
+                    title="Game host">
+                    stars
+                </i>
+            )}
+        </div>
+    )
 }
 
-class Player extends Component<{
-    data: FullState,
-    socket: WebSocketChannel,
-    id: string
-}> {
+const Player = ({ id }: UserProps) => {
+    const {master, readyPlayers, onlinePlayers, userId, playerNames, playerScores} = useContext(DataContext);
+    const isReady = readyPlayers.includes(id);
+    const isMaster = id === master;
+    const self = id === userId;
+    const clickSaveAvatar = () => document.getElementById("avatar-input")?.click();
 
-    clickSaveAvatar() {
-        document.getElementById("avatar-input")?.click();
-    }
-
-
-    render() {
-        const {data, socket, id} = this.props;
-        const {master, readyPlayers} = data;
-        const isReady = readyPlayers.includes(id);
-        const isMaster = id === master;
-
-        return (
-            <div className={cs("player", {
-                ready: isReady && !isMaster,
-                offline: !~data.onlinePlayers.indexOf(id),
-                self: id === data.userId,
-                master: isMaster,
-            })} onTouchStart={(e) => (e.target as HTMLElement).focus()}>
-                <div className="player-inner">
-                    <div className="player-avatar-section"
-                         onTouchStart={(e) => (e.target as HTMLElement).focus()}
-                         onClick={() => (id === data.userId) && this.clickSaveAvatar()}>
-                        <Avatar data={data} player={id}/>
-                        {id === data.userId ? (<i className="change-avatar-icon material-icons" title="Change avatar">
-                            edit
-                        </i>) : ""}
-                    </div>
-                    <div className="player-name-section">
-                        <span className="player-name">
-                            {data.playerNames[id]}
+    return (
+        <div className={cs("player", {
+            ready: isReady && !isMaster,
+            offline: !~onlinePlayers.indexOf(id),
+            self,
+            master: isMaster,
+        })} onTouchStart={(e) => (e.target as HTMLElement).focus()}>
+            <div className="player-inner">
+                <div className="player-avatar-section"
+                        onTouchStart={(e) => (e.target as HTMLElement).focus()}
+                        onClick={() => self && clickSaveAvatar()}>
+                    <Avatar player={id}/>
+                    {self && (<i 
+                        className="change-avatar-icon material-icons"
+                        title="Change avatar"
+                    >
+                        edit
+                    </i>)}
+                </div>
+                <div className="player-name-section">
+                    <span className="player-name">
+                        {playerNames[id]}
+                    </span>
+                    &nbsp;
+                    <PlayerHostControls id={id}/>
+                    <span className="spacer"/>
+                    <span className="score-cont">
+                        <span className="score">
+                            {playerScores[id] || 0}
                         </span>
-                        &nbsp;
-                        <PlayerHostControls id={id} data={data} socket={socket}/>
-                        <span className="spacer"/>
-                        <span className="score-cont">
-                            <span className="score">
-                                {data.playerScores[id] || 0}
-                            </span>
-                        </span>
-                    </div>
+                    </span>
                 </div>
             </div>
-        );
-    }
+        </div>
+    );
 }
 
-export class PlayerList extends Component<{data: FullState, socket: WebSocketChannel}> {
+export const PlayerList = () => {
+    const { teamsLocked, players, userId } = useContext(DataContext);
+    const isPlayer = players.includes(userId);
+    const socket = useContext(SocketContext);
 
-    joinPlayersClick(evt: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    const joinPlayersClick = (evt: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         evt.stopPropagation();
-        if (!this.props.data.teamsLocked)
-            this.props.socket.emit("players-join");
+        if (!teamsLocked) socket.emit("players-join");
     }
 
-    render() {
-        const
-            socket = this.props.socket,
-            data = this.props.data;
-        return (
-            <div className="player-list-section">
-                <div className="player-list">
-                    {data.players.map((id => (
-                        <Player key={id} data={data} id={id} socket={socket}/>
-                    )))}
-                    {!data.players.includes(data.userId) && (
-                        <div
-                            className="player join-button"
-                            onClick={(evt) => this.joinPlayersClick(evt)}
-                        >
-                            <div className="player-inner">
-                                <div className="player-avatar-section">
-                                    <div className="avatar"/>
-                                </div>
-                                <div className="player-name-section">
-                                <span className="player-name">
-                                    {t('Enter')}
-                                </span>
-                                </div>
+    return (
+        <div className="player-list-section">
+            <div className="player-list">
+                {players.map(id => <Player key={id} id={id} />)}
+                {!isPlayer && (
+                    <div
+                        className="player join-button"
+                        onClick={joinPlayersClick}
+                    >
+                        <div className="player-inner">
+                            <div className="player-avatar-section">
+                                <div className="avatar"/>
+                            </div>
+                            <div className="player-name-section">
+                            <span className="player-name">
+                                {t('Enter')}
+                            </span>
                             </div>
                         </div>
-                    )}
-                </div>
-            </div>
-        );
-    }
-}
-
-class Spectator extends Component<{
-    data: FullState,
-    socket: WebSocketChannel,
-    id: string
-}> {
-    render() {
-        const
-            data = this.props.data,
-            socket = this.props.socket,
-            id = this.props.id;
-        return (
-            <span className={cs("spectator", {self: id === data.userId})}>
-                &nbsp;●&nbsp;
-                <span className="spectator-name">{data.playerNames[id]}</span>
-                &nbsp;
-                <PlayerHostControls id={id} data={data} socket={socket}/>
-            </span>
-        )
-    }
-}
-
-export class SpectatorList extends Component<{data: FullState, socket: WebSocketChannel}> {
-    joinSpectatorsClick(evt: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-        evt.stopPropagation();
-        if (!this.props.data.teamsLocked)
-            this.props.socket.emit("spectators-join");
-    }
-
-    render() {
-        const
-            data = this.props.data,
-            socket = this.props.socket,
-            empty = !data.spectators.length;
-        return (
-            <div className="spectator-placeholder">
-                <div className={cs('spectators-section')}>
-                    <div
-                        className={cs("spectators", {empty: empty})}
-                        onClick={(evt) => this.joinSpectatorsClick(evt)}
-                    >
-                        {t('Spectators')}:{empty && ' ...'}
-                        {data.spectators.map((id => (
-                            <Spectator key={id} data={data} id={id} socket={socket}/>
-                        )))}
                     </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+const Spectator = ({ id }: UserProps) => {
+    const { playerNames, userId } = useContext(DataContext);
+    const self = id === userId;
+    return (
+        <span className={cs("spectator", {self})}>
+            &nbsp;●&nbsp;
+            <span className="spectator-name">
+                {playerNames[id]}
+            </span>
+            &nbsp;
+            <PlayerHostControls id={id} />
+        </span>
+    )
+}
+
+export const SpectatorList = () =>  {
+    const { teamsLocked, spectators } = useContext(DataContext);
+    const socket = useContext(SocketContext);
+    const empty = spectators.length === 0;
+
+    const joinSpectatorsClick = (evt: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        evt.stopPropagation();
+        if (!teamsLocked) socket.emit("spectators-join");
+    }
+
+    return (
+        <div className="spectator-placeholder">
+            <div className={cs('spectators-section')}>
+                <div
+                    className={cs("spectators", {empty})}
+                    onClick={joinSpectatorsClick}
+                >
+                    {t('Spectators')}:{empty && ' ...'}
+                    {spectators.map(id => <Spectator key={id} id={id} /> )}
                 </div>
             </div>
-        )
-    }
+        </div>
+    )
 }

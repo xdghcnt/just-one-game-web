@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useContext } from "react";
 import { SetParamType } from "../common/messages";
 import { t } from "./translation_ru";
 import { useDebouncedCallback } from 'use-debounce';
+import { SocketContext, DataContext } from './gameContext';
 
 type GameSettingType = {
     param: SetParamType,
@@ -20,10 +21,9 @@ const gameSettings: GameSettingType[] = [
     { param: 'goal', label: 'goal', icon: 'flag', min: 1}
 ];
 
-type SettingInputProps = FullProps & { setting: GameSettingType };
-
-const SettingInput = ({data, socket, setting}: SettingInputProps) => {
-    const { param, label, icon, min, max } = setting;
+const SettingInput = ({ param, label, icon, min, max }: GameSettingType) => {
+    const data = useContext(DataContext);
+    const socket = useContext(SocketContext);
     //generate className from label e.g. "set-player-time"
     const className = ['set', ...label.split(' ')].join('-');
     const { hostId, userId, phase, paused } = data;
@@ -61,12 +61,12 @@ const SettingInput = ({data, socket, setting}: SettingInputProps) => {
     )
 }
 
-const GameSettings = ( {data, socket}: FullProps ) => (
+const GameSettings = () => (
     <div className="host-controls-menu">
         <div className="little-controls">
             <div className="game-settings">
                 {gameSettings.map((setting) => (
-                    <SettingInput data={data} socket={socket} setting={setting} />
+                    <SettingInput {...setting} />
                 ))}
             </div>
         </div>
@@ -74,15 +74,16 @@ const GameSettings = ( {data, socket}: FullProps ) => (
 )
 
 
-type HostControlsProps = FullProps & { refreshState: () => void };
+type HostControlsProps = { refreshState: () => void };
 
 type ButtonProps = {
     icon: string;
     onClick: () => void;
 }
 
-const SideButtons = ( {data, socket, refreshState }: HostControlsProps ) => {
-    const { hostId, userId, phase, paused, teamsLocked, timed, playerNames } = data;
+const SideButtons = ( {refreshState }: HostControlsProps ) => {
+    const { hostId, userId, phase, paused, teamsLocked, timed, playerNames } = useContext(DataContext);
+    const socket = useContext(SocketContext);
     const isHost = hostId === userId;
     const inProcess = phase !== 0 && !paused;
     const buttons: ButtonProps[] = [];
@@ -159,15 +160,18 @@ const SideButtons = ( {data, socket, refreshState }: HostControlsProps ) => {
     )
 }
 
-export const HostControls = ( { data, socket, refreshState }: HostControlsProps) => (
-    <div
-        className="host-controls"
-        onTouchStart={(e) => (e.target as HTMLElement).focus()}
-    >
-        {data.timed && <GameSettings data={ data } socket={ socket } />}
-        <SideButtons data={ data } socket={ socket } refreshState={refreshState} />
-        <i className="settings-hover-button material-icons">
-            settings
-        </i>
-    </div>
-)
+export const HostControls = ( { refreshState }: HostControlsProps) => {
+    const { timed } = useContext(DataContext);
+    return (
+        <div
+            className="host-controls"
+            onTouchStart={(e) => (e.target as HTMLElement).focus()}
+        >
+            {timed && <GameSettings />}
+            <SideButtons refreshState={refreshState} />
+            <i className="settings-hover-button material-icons">
+                settings
+            </i>
+        </div>
+    )
+}
