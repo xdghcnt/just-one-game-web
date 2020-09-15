@@ -6,17 +6,9 @@ import { PlayerList, SpectatorList } from './player';
 import { HostControls } from './hostControls';
 import { AvatarSaver } from './avatar';
 import { InitUserArgs, RoomState, PlayerState } from '../common/messages';
+import { makeId } from '../common/utils'
 import { SocketContext, DataContext } from './gameContext';
 import './global';
-
-function makeId() {
-    let text = "";
-    const possible = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-    for (let i = 0; i < 5; i++)
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    return text;
-}
 
 class Game extends Component<{}, GameCompState> {
 
@@ -61,11 +53,15 @@ class Game extends Component<{}, GameCompState> {
         }
         window.hyphenate = createHyphenator(hyphenationPatternsRu);
         this.socket.on("state", (state: RoomState) => {
-            //Temporary hack to accommodate slow-loading standalone babel script
-            setTimeout(() => {
+            if (window.CommonRoom) {
                 CommonRoom.processCommonRoom(state, this.state);
-                this.refreshState();
-            }, 1000);
+            } else {
+                //Temporary hack to accommodate slow-loading standalone babel script
+                setTimeout(() => {
+                    CommonRoom.processCommonRoom(this.state, this.state);
+                    this.refreshState();
+                }, 1000);
+            }
             if (this.state.inited) {
                 if (this.state.phase && state.phase !== 0 && !parseInt(localStorage.muteSounds)) {
                     if (this.state.master !== this.userId && state.master === this.userId)
