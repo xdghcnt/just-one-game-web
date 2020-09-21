@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { Avatar } from "./avatar";
 import { SocketContext, DataContext } from './gameContext';
 import { getMessy } from './messy';
+import './card.css';
 
 type HintProps = {
     player: UserId;

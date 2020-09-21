@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { Avatar } from './avatar';
 import { DataContext, SocketContext } from "./gameContext";
 import { t } from "./translation_ru";
+import './player.css';
 
 type UserProps = { id: UserId };
 

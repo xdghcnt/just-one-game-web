@@ -9,6 +9,7 @@ import { InitUserArgs, RoomState, PlayerState } from '../common/messages';
 import { makeId } from '../common/utils'
 import { SocketContext, DataContext } from './gameContext';
 import './global';
+import './app.css';
 
 class Game extends Component<{}, GameCompState> {
 

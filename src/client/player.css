@@ -1,0 +1,181 @@
+.spacer {
+    flex-grow: 1;
+}
+
+.player-list {
+    text-align: center;
+}
+
+.player {
+    white-space: nowrap;
+    user-select: none;
+    display: inline-flex;
+    margin: 6px 1px;
+}
+
+.player {
+    filter: drop-shadow(0px 0px 2px #969696);
+}
+
+.dark-theme .player {
+    filter: drop-shadow(0px 0px 2px #050505);
+}
+
+.player-inner {
+    background: white;
+    height: 32px;
+    overflow: hidden;
+    clip-path: polygon(0 0, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
+}
+
+.dark-theme .player-inner {
+    background: #363739;
+}
+
+.player.ready {
+   filter: drop-shadow(0px 0px 3px #7ace5a);
+}
+.player.master {
+   filter: drop-shadow(0px 0px 3px cyan);
+   color: #00bdbd;
+}
+
+.spectator.self, .player.self {
+    font-weight: bold;
+}
+
+.player.offline {
+    color: #7c7c7c;
+}
+
+.player-host-controls {
+    display: none;
+}
+
+.player:hover .player-host-controls, .player:focus .player-host-controls {
+    display: inline-block;
+}
+
+.spectator:hover .player-host-controls, .spectator:focus .player-host-controls {
+    display: inline-block;
+}
+
+.player-avatar-section {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+.dark-theme .player-avatar-section {
+    background: #363739;
+}
+
+.change-avatar-icon {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    padding: 3px;
+    color: #000000;
+    opacity: 0.7;
+    cursor: pointer;
+    background-color: white;
+    display: none;
+}
+
+.dark-theme .change-avatar-icon {
+    background-color: #363739;
+    color: #e2dede;
+}
+
+.player-avatar-section:hover .change-avatar-icon, .player-avatar-section:focus .change-avatar-icon {
+    display: block;
+}
+
+.player-name-section {
+    display: inline-flex;
+    width: 147px;
+    text-align: left;
+    align-items: center;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.player-name {
+    overflow: hidden;
+    display: inline-block;
+    margin: 0;
+    padding-left: 6px;
+    text-overflow: ellipsis;
+}
+
+.player.offline .player-name {
+    text-decoration: line-through;
+}
+
+.player .host-button, .command .host-button, .spectator .host-button {
+    font-size: 16px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.player .score {
+    border: 2px solid;
+    display: inline-flex;
+    margin-right: 11px;
+    padding: 0px 4px;
+    line-height: 16px;
+    align-items: center;
+    border-radius: 24px;
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 16px;
+}
+
+.join-button {
+    cursor: pointer;
+}
+
+.join-button .player-name {
+    text-decoration: underline;
+}
+
+.spectator-placeholder {
+    height: 42px;
+}
+
+.spectators-section {
+    text-align: center;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 2;
+}
+
+.dark-theme .spectators {
+    background: rgba(63, 63, 62, 0.78);
+}
+
+.spectators {
+    height: 20px;
+    padding: 4px 6px;
+    cursor: pointer;
+    background: rgba(255, 252, 245, 0.58);
+    user-select: none;
+    white-space: nowrap;
+    margin-left: 5px;
+    line-height: 20px;
+}
+
+.teamsLocked .spectators {
+    cursor: default;
+}
+
+.game-board.teamsLocked .join-button {
+    display: none;
+}
+
+.game-board.teamsLocked .spectators.empty {
+    display: none;
+}

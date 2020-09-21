@@ -3,6 +3,7 @@ import { SetParamType } from "../common/messages";
 import { t } from "./translation_ru";
 import { useDebouncedCallback } from 'use-debounce';
 import { SocketContext, DataContext } from './gameContext';
+import './hostControls.css';
 
 type GameSettingType = {
     param: SetParamType,

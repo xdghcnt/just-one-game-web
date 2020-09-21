@@ -1,0 +1,140 @@
+.status-bar-wrap {
+    margin: 40px 0;
+}
+
+.status-bar {
+    background: rgba(255, 252, 245, 0.58);
+    display: flex;
+    flex-direction: column;
+    height: 225px;
+    box-shadow: 0 0 4px 1px #969696;
+    text-align: center;
+    position: relative;
+}
+
+.dark-theme .status-bar {
+    background: #363739;
+    box-shadow: 0 0 4px 1px #050505;
+}
+
+.status-bar .title {
+    font-size: 34px;
+    padding: 0 25px;
+    position: relative;
+}
+
+.status-bar .subtitle {
+    line-height: 28px;
+    padding: 0 64px;
+    padding-bottom: 10px;
+    position: relative;
+}
+
+.hint-form {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-grow: 1;
+}
+
+.hint-form .hint-cont {
+    filter: drop-shadow(0px 0px 2px #969696);
+}
+
+.dark-theme .hint-form .hint-cont {
+    filter: drop-shadow(0px 0px 2px #050505);
+}
+
+.master-target {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-grow: 1;
+}
+
+.master-target .master-avatar {
+    position: absolute;
+    bottom: 13px;
+    left: 13px;
+    filter: drop-shadow(0px 0px 2px #050505 );
+}
+
+.avatar-arrow {
+    filter: drop-shadow(0px 0px 2px #969696 );
+}
+
+.dark-theme .avatar-arrow {
+    filter: drop-shadow(0px 0px 2px #050505 );
+}
+
+.closed-word-result {
+    display: flex;
+    width: 100%;
+    justify-content: space-evenly;
+}
+
+.closed-word {
+    height: 140px;
+    width: 260px;
+    background: white;
+    color: #444;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-family: 'Roboto Condensed', sans-serif;
+    letter-spacing: 0.5px;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.closed-word.mistake {
+    text-decoration: line-through;
+    border-color: darkred;
+    opacity: 0.8;
+}
+
+.add-command-button {
+    cursor: pointer;
+    padding: 5px;
+    
+}
+
+.add-command-button .material-icons {
+    font-size: 34px;
+}
+
+.ready-button {
+    cursor: pointer;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 9px;
+}
+
+.ready-button.isReady {
+    color: #61984f;
+}
+
+.ready-button i {
+    font-size: 40px;
+}
+
+.aligner {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#time-left-bar {
+    background-color: #82ec5a;
+    height: 5px;
+    width: 100%;
+    transition: width 1s linear;
+}
+
+.dark-theme #time-left-bar {
+    background-color: #61984f;
+}

@@ -4,6 +4,8 @@ import { getMessy } from './messy';
 import { TimeLeftBar } from './timeLeftBar';
 import { t } from "./translation_ru";
 import { SocketContext, DataContext } from './gameContext';
+import './statusBar.css';
+import './card.css';
 
 type ReadyBtnProps = { isReady: boolean };
 

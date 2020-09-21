@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { SocketContext, DataContext } from './gameContext';
+import './avatar.css';
 
 type AvatarProps = { player: UserId | null };
 
