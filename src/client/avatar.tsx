@@ -37,7 +37,7 @@ interface SaveAvatar {
     formData: Record<string, string>;
 }
 
-const saveAvatar = ({input, onSuccess, formData}: SaveAvatar) => {
+const saveAvatar = ({input, onSuccess, formData}: SaveAvatar): void => {
     if (input.files && input.files[0]) {
         const file = input.files[0];
         const
