@@ -53,6 +53,7 @@ function init(wsServer, path) {
                     playerLiked: null,
                     playerWin: null,
                     wordGuessed: null,
+                    managedVoice: true,
                     masterKicked: false
                 },
                 state = {
@@ -65,7 +66,20 @@ function init(wsServer, path) {
             let interval;
             const
                 send = (target, event, data) => userRegistry.send(target, event, data),
-                update = () => send(room.onlinePlayers, "state", room),
+                update = () => {
+                    if (room.voiceEnabled)
+                        processUserVoice();
+                    send(room.onlinePlayers, "state", room);
+                },
+                processUserVoice = () => {
+                    room.userVoice = {};
+                    room.onlinePlayers.forEach((user) => {
+                        if (!room.managedVoice || !room.teamsLocked || room.phase === 0)
+                            room.userVoice[user] = true;
+                        else if (room.players)
+                            room.userVoice[user] = true;
+                    });
+                },
                 updatePlayerState = () => {
                     [...room.onlinePlayers].forEach(playerId => {
                         if (room.players.has(playerId)) {
@@ -318,10 +332,12 @@ function init(wsServer, path) {
                         registry.log(error.message);
                     }
                 };
+            this.updatePublicState = update;
             this.userJoin = userJoin;
             this.userLeft = userLeft;
             this.userEvent = userEvent;
             this.eventHandlers = {
+                ...this.eventHandlers,
                 "update-avatar": (user, id) => {
                     room.playerAvatars[user] = id;
                     update()

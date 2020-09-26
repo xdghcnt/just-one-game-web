@@ -903,3 +903,9 @@ input#command-input {
     background-image: url(/just-one/logo-paper.png);
     opacity: 0.4;
 }
+
+.user-audio-marker-elem {
+    margin-right: 0;
+    margin-left: 4px;
+    background: darkcyan;
+}

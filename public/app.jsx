@@ -27,6 +27,7 @@ class Game extends React.Component {
     }
 
     componentDidMount() {
+        this.gameName = "just-one";
         const initArgs = {};
         if (!parseInt(localStorage.darkThemeDixit))
             document.body.classList.add("dark-theme");
@@ -45,7 +46,7 @@ class Game extends React.Component {
             delete localStorage.acceptDelete;
         }
         initArgs.avatarId = localStorage.avatarId;
-        initArgs.roomId = location.hash.substr(1);
+        initArgs.roomId = this.roomId = location.hash.substr(1);
         initArgs.userId = this.userId = localStorage.dixitUserId;
         initArgs.token = this.userToken = localStorage.dixitUserToken;
         initArgs.userName = localStorage.userName;
