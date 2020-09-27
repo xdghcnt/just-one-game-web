@@ -7,6 +7,7 @@ interface TimeLeftBarProps {
 interface TimeLeftBarState {
     time: number | null;
     serverTime: number | null;
+    percent: number;
 }
 
 export class TimeLeftBar extends Component<TimeLeftBarProps, TimeLeftBarState> {
@@ -16,7 +17,11 @@ export class TimeLeftBar extends Component<TimeLeftBarProps, TimeLeftBarState> {
     constructor(props: TimeLeftBarProps) {
         super(props);
         const { time } = props.data;
-        this.state = { time, serverTime: time };
+        this.state = {
+            time,
+            serverTime: time,
+            percent: 0
+        };
     }
 
     componentDidMount() {
@@ -55,11 +60,8 @@ export class TimeLeftBar extends Component<TimeLeftBarProps, TimeLeftBarState> {
             4: data.revealTime,
         };
         const timeTotal = phaseTimes[data.phase] * 1000;
-        const percent = (time / timeTotal) * 100 + '%';
-        const pbEl = document.getElementById('time-left-bar');
-        if (pbEl) {
-            pbEl.style.width = percent;
-        }
+        const percent  = (time / timeTotal) * 100;
+        this.setState({ percent });
     }
 
     animate() {
@@ -90,7 +92,9 @@ export class TimeLeftBar extends Component<TimeLeftBarProps, TimeLeftBarState> {
 
     render() {
         return (
-            <div id="time-left-bar"/>
+            <div id="time-left-bar" style={{
+                width: this.state.percent + '%'
+            }}/>
         )
     }
 }

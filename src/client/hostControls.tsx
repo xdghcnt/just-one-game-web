@@ -67,7 +67,7 @@ const GameSettings = () => (
         <div className="little-controls">
             <div className="game-settings">
                 {gameSettings.map((setting) => (
-                    <SettingInput {...setting} />
+                    <SettingInput {...setting} key={setting.param} />
                 ))}
             </div>
         </div>
@@ -153,7 +153,7 @@ const SideButtons = ( {refreshState }: HostControlsProps ) => {
     return (
         <div className="side-buttons">
             {buttons.map(({onClick, icon}) => (
-                <i onClick={onClick} className="material-icons settings-button">
+                <i onClick={onClick} className="material-icons settings-button" key={icon}>
                     {icon}
                 </i>
             ))}
