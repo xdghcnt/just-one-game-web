@@ -20,6 +20,7 @@ declare global {
         socket: WebSocketWrapper;
         hyphenate: (text: string) => string;
         CommonRoom: CommonRoomComponent;
+        UserAudioMarker: UserAudioMarkerComponent;
     }
 
     type CommonRoomComponent =
@@ -28,7 +29,8 @@ declare global {
 
     const CommonRoom: CommonRoomComponent;
 
-    const UserAudioMarker: (new() => Component<{user: string, data: FullState}>);
+    type UserAudioMarkerComponent = (new() => Component<{user: string, data: FullState}>);
+    const UserAudioMarker: UserAudioMarkerComponent;
 
     type PopupEvt = {
         proceed?: boolean;
@@ -67,3 +69,5 @@ declare global {
 
     type GameCompState = HollowState | FullState | DisconnectedState;
 }
+
+window.UserAudioMarker = window.UserAudioMarker || (() => null);

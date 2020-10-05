@@ -55,13 +55,24 @@ class Game extends Component<{}, GameCompState> {
         }
         window.hyphenate = createHyphenator(hyphenationPatternsRu);
         this.socket.on("state", (state: RoomState) => {
+            //Temporary hack to accommodate slow-loading standalone babel script
             if (window.CommonRoom) {
                 CommonRoom.processCommonRoom(state, this.state);
             } else {
-                //Temporary hack to accommodate slow-loading standalone babel script
                 setTimeout(() => {
-                    CommonRoom.processCommonRoom(this.state, this.state);
-                    this.refreshState();
+                    if (window.CommonRoom) {
+                        CommonRoom.processCommonRoom(this.state, this.state);
+                        this.refreshState();
+                    } else {
+                        setTimeout(() => {
+                            if (window.CommonRoom) {
+                                CommonRoom.processCommonRoom(this.state, this.state);
+                                this.refreshState();
+                            } else {
+                                console.error('CommonRoom is missing from global scope.');
+                            }
+                        }, 3000);
+                    }
                 }, 1000);
             }
             if (this.state.inited) {
