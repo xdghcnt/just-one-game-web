@@ -1,0 +1,13 @@
+{
+    "include": ["src"],
+    "compilerOptions": {
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "moduleResolution": "node",
+        "jsx": "react",
+        "target": "ES2019",
+        "allowSyntheticDefaultImports": true
+    }
+}

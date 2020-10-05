@@ -1,0 +1,71 @@
+body {
+    color:#444;
+    margin: 0;
+    background: linear-gradient(to right, rgb(238, 244, 236) 0%, #fff5e9 100%);
+    background: #e5efde;
+    -webkit-user-drag: none;
+}
+
+body.dark-theme {
+    color: #cccaca;
+    background: #202020;
+}
+
+.game-board {
+    justify-content: space-around;
+    height: 100%;
+    user-select: none;
+}
+
+.kicked {
+    text-align: center;
+    padding: 20px;
+    font-size: 18px;
+}
+
+.main-row {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+
+/* POPUP STYLES START HERE */
+
+.popup_modals .modal_buttons .btn.btn_pmry {
+    background-color: #8dbf68 !important;
+}
+
+.popup_modals .modal_buttons .btn.btn_sdry {
+    background-color: #7f8c8d !important;
+}
+
+
+/* CommonRoom STYLES START HERE */
+
+.panel {
+    box-shadow: 0 0 4px 1px #969696;
+    background: white;
+}
+
+.dark-theme .panel {
+    box-shadow: 0 0 4px 1px #050505;
+    background: #363739;
+}
+
+a {
+    color: black;
+}
+
+.dark-theme a {
+    color: #cccaca;
+}
+
+.panel-accent {
+    background: #dde8d4;
+}
+
+.dark-theme .panel-accent {
+    background: #4c4c4c;
+}
