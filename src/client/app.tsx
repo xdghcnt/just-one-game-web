@@ -16,8 +16,9 @@ class Game extends Component<{}, GameCompState> {
     userId = localStorage.dixitUserId;
     userToken = localStorage.dixitUserToken;
     socket = window.socket.of("just-one");
-
+    gameName = "just-one";
     
+    roomId?: string;
     sounds: Record<string, HTMLAudioElement> = {};
 
     constructor(props: any) {
@@ -30,7 +31,7 @@ class Game extends Component<{}, GameCompState> {
     componentDidMount() {
         const initArgs : InitUserArgs = {
             avatarId: localStorage.avatarId,
-            roomId: location.hash.substr(1),
+            roomId: this.roomId = location.hash.substr(1),
             userId: this.userId,
             token: this.userToken,
             userName: localStorage.userName,

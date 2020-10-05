@@ -54,7 +54,8 @@ const PlayerHostControls = ({ id }: UserProps) => {
 }
 
 const Player = ({ id }: UserProps) => {
-    const {master, readyPlayers, onlinePlayers, userId, playerNames, playerScores} = useContext(DataContext);
+    const data = useContext(DataContext);
+    const {master, readyPlayers, onlinePlayers, userId, playerNames, playerScores} = data;
     const isReady = readyPlayers.includes(id);
     const isMaster = id === master;
     const self = id === userId;
@@ -80,6 +81,7 @@ const Player = ({ id }: UserProps) => {
                     </i>)}
                 </div>
                 <div className="player-name-section">
+                    <UserAudioMarker user={id} data={data}/>
                     <span className="player-name">
                         {playerNames[id]}
                     </span>
@@ -134,11 +136,12 @@ export const PlayerList = () => {
 }
 
 const Spectator = ({ id }: UserProps) => {
-    const { playerNames, userId } = useContext(DataContext);
+    const data = useContext(DataContext);
+    const { playerNames, userId, voiceEnabled } = data;
     const self = id === userId;
     return (
         <span className={cs("spectator", {self})}>
-            &nbsp;●&nbsp;
+            &nbsp;{voiceEnabled ? <UserAudioMarker user={id} data={data}/> : "●"}&nbsp;
             <span className="spectator-name">
                 {playerNames[id]}
             </span>

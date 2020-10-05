@@ -10,6 +10,9 @@ interface ServerRoomState extends Modify<RoomState, {
     players: Set<UserId>;
     readyPlayers: Set<UserId>;
     playerHints: Set<UserId>;
+
+    managedVoice: boolean;
+    userVoice?: Record<UserId, boolean>;
 }> {}
 
 interface Snapshot {
@@ -77,6 +80,7 @@ function init(wsServer: any, path: string) {
                     playerLiked: null,
                     playerWin: null,
                     wordGuessed: null,
+                    managedVoice: true,
                     masterKicked: false
                 },
                 state: PlayerState = {
@@ -89,7 +93,20 @@ function init(wsServer: any, path: string) {
             let interval: NodeJS.Timeout;
             const
                 send = (target: any, event: string, data: object) => userRegistry.send(target, event, data),
-                update = () => send(room.onlinePlayers, "state", room),
+                update = () => {
+                    if (room.voiceEnabled)
+                        processUserVoice();
+                    send(room.onlinePlayers, "state", room);
+                },
+                processUserVoice = () => {
+                    room.userVoice = {};
+                    for (const user of room.onlinePlayers) {
+                        if (!room.managedVoice || !room.teamsLocked || room.phase === 0)
+                            room.userVoice[user] = true;
+                        else if (room.players)
+                            room.userVoice[user] = true;
+                    }
+                },
                 updatePlayerState = () => {
                     [...room.onlinePlayers].forEach(playerId => {
                         if (room.players.has(playerId)) {
@@ -358,10 +375,13 @@ function init(wsServer: any, path: string) {
                         registry.log(error.message);
                     }
                 };
+            this.updatePublicState = update;
             this.userJoin = userJoin;
             this.userLeft = userLeft;
             this.userEvent = userEvent;
             this.eventHandlers = {
+                // @ts-ignore: TODO: figure out what this line means 
+                ...this.eventHandlers,
                 "update-avatar": (user, id: string) => {
                     room.playerAvatars[user] = id;
                     update()

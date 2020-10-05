@@ -28,6 +28,8 @@ declare global {
 
     const CommonRoom: CommonRoomComponent;
 
+    const UserAudioMarker: (new() => Component<{user: string, data: FullState}>);
+
     type PopupEvt = {
         proceed?: boolean;
         input_value?: string;

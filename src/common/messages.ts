@@ -45,6 +45,7 @@ export interface RoomState {
     playerLiked: string | null;
     playerWin: string | null;
     wordGuessed: boolean | null;
+    voiceEnabled?: boolean;
     masterKicked: boolean;
 }
 

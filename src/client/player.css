@@ -179,3 +179,9 @@
 .game-board.teamsLocked .spectators.empty {
     display: none;
 }
+
+.user-audio-marker-elem {
+    margin-right: 0;
+    margin-left: 4px;
+    background: darkcyan;
+} 
