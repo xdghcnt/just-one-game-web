@@ -26,7 +26,9 @@ class ProgressBar extends React.Component {
 
     progressBarUpdate(x, outOf) {
         const percent = (1 - x / outOf) * 100 + '%'
-        document.getElementById('timer-progress-bar').style.width = percent;
+        const barNode = document.getElementById('timer-progress-bar');
+        if (barNode)
+            barNode.style.width = percent;
     }
 
     render() {
