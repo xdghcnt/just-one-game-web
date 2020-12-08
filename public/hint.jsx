@@ -25,7 +25,7 @@ class Hint extends React.Component {
 
     render() {
         const {data, player, index} = this.props;
-        const {bannedHints, unbannedHints, hints, closedHints, playerLiked, userId, master, phase, wordGuessed, scoreChanges, rounds} = data;
+        const {bannedHints, unbannedHints, hints, closedHints, playerLiked, userId, master, phase, wordGuessed, scoreChanges, rounds, players} = data;
         const banned = bannedHints[player];
         const unbanned = unbannedHints[player];
         const isMaster = userId === master;
@@ -41,19 +41,19 @@ class Hint extends React.Component {
             )
         }
         if (phase === 2 || (phase === 4 && banned)) {
+            const showWarnAvatars = (!isMaster && players.includes(userId)) || phase === 4;
             corners.push(
                 <div className="tr-corner">
                     <div
-                        className="ban-hint-button"
+                        className="ban-hint-button" onClick={() => this.toggleHintBan(player)}
                     >
-                        {((!isMaster || phase === 4) && banned)
+                        {(showWarnAvatars && banned)
                             ? <Avatar data={data} player={banned}/>
                             : ""}
-                        {((!isMaster || phase === 4) && unbanned)
+                        {(showWarnAvatars && unbanned)
                             ? <Avatar data={data} player={unbanned}/>
                             : ""}
-                        <i className="material-icons"
-                           onClick={() => this.toggleHintBan(player)}>warning</i>
+                        <i className="material-icons">warning</i>
                     </div>
                 </div>
             )

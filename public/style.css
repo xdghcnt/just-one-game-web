@@ -927,9 +927,16 @@ input#command-input {
 }
 
 .ban-hint-button .avatar {
-    clip-path: polygon(11% 9%, 94% 9%, 58% 86%, 11% 86%);
-    margin-right: -15px;
+    clip-path: polygon(0% 9%, 100% 9%, 58% 100%, 0 100%);
+    margin-right: -13px;
     opacity: 0.5;
+    width: 34px;
+    pointer-events: fill;
+    height: 28px;
+}
+
+.banned .ban-hint-button .avatar {
+    opacity: 0.7;
 }
 
 .ban-hint-button {
