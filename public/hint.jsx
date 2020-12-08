@@ -25,8 +25,9 @@ class Hint extends React.Component {
 
     render() {
         const {data, player, index} = this.props;
-        const {bannedHints, hints, closedHints, playerLiked, userId, master, phase, wordGuessed, scoreChanges, rounds} = data;
+        const {bannedHints, unbannedHints, hints, closedHints, playerLiked, userId, master, phase, wordGuessed, scoreChanges, rounds} = data;
         const banned = bannedHints[player];
+        const unbanned = unbannedHints[player];
         const isMaster = userId === master;
         const origText = hints[player] || (closedHints && closedHints[player]);
         const text = origText ? window.hyphenate(origText) : null;
@@ -44,9 +45,15 @@ class Hint extends React.Component {
                 <div className="tr-corner">
                     <div
                         className="ban-hint-button"
-                        onClick={() => this.toggleHintBan(player)}
                     >
-                        <i className="material-icons">warning</i>
+                        {((!isMaster || phase === 4) && banned)
+                            ? <Avatar data={data} player={banned}/>
+                            : ""}
+                        {((!isMaster || phase === 4) && unbanned)
+                            ? <Avatar data={data} player={unbanned}/>
+                            : ""}
+                        <i className="material-icons"
+                           onClick={() => this.toggleHintBan(player)}>warning</i>
                     </div>
                 </div>
             )
@@ -82,11 +89,11 @@ class Hint extends React.Component {
 
         return (
             <div
-                className={cs("card hint", {banned})}
+                className={cs("card hint", {banned: !!banned})}
                 style={Messy.getStyle(rounds + '_' + index)}
             >
                 {text != null
-                    ? <div className={cs("hint-text", {banned})}>{text}</div>
+                    ? <div className={cs("hint-text", {banned: !banned})}>{text}</div>
                     : <div className="card-logo"
                            style={Messy.getLogoStyle(rounds + '_' + index)}/>}
                 {corners}

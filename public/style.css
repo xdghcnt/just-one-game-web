@@ -32,11 +32,11 @@ body.dark-theme {
 }
 
 .player.ready {
-   filter: drop-shadow(0px 0px 3px #7ace5a);
+    filter: drop-shadow(0px 0px 3px #7ace5a);
 }
 .player.master {
-   filter: drop-shadow(0px 0px 3px cyan);
-   color: #00bdbd;
+    filter: drop-shadow(0px 0px 3px cyan);
+    color: #00bdbd;
 }
 
 
@@ -682,7 +682,7 @@ a {
 .add-command-button {
     cursor: pointer;
     padding: 5px;
-    
+
 }
 
 .add-command-button .material-icons {
@@ -700,7 +700,7 @@ input#command-input {
     color: gainsboro;
 }
 
-.ready-button {
+.ready-button, .accept-button {
     cursor: pointer;
     position: absolute;
     bottom: 0;
@@ -708,12 +708,28 @@ input#command-input {
     padding: 9px;
 }
 
-.ready-button.isReady {
-    color: #61984f;
+.accept-button {
+    right: 52px;
+    bottom: 5px;
+    display: flex;
+    align-items: center;
 }
 
 .ready-button i {
     font-size: 40px;
+}
+
+.accept-button i {
+    font-size: 30px;
+    margin-left: 10px;
+}
+
+.playerAccepted i {
+    color: #61984f;
+}
+
+.ready-button.isReady {
+    color: #61984f;
 }
 
 .ban-hint-button, .set-like-button {
@@ -811,6 +827,7 @@ input#command-input {
 
 .card.banned .ban-hint-button {
     color: #c14646;
+    display: flex;
 }
 
 .card.banned {
@@ -907,4 +924,14 @@ input#command-input {
     margin-right: 0;
     margin-left: 4px;
     background: darkcyan;
+}
+
+.ban-hint-button .avatar {
+    clip-path: polygon(11% 9%, 94% 9%, 58% 86%, 11% 86%);
+    margin-right: -15px;
+    opacity: 0.5;
+}
+
+.ban-hint-button {
+    display: flex;
 }

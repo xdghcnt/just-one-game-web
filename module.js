@@ -31,6 +31,7 @@ function init(wsServer, path) {
                     players: new JSONSet(),
                     readyPlayers: new JSONSet(),
                     playerHints: new JSONSet(),
+                    playerAcceptVotes: new JSONSet(),
                     playerScores: {},
                     scoreChanges: {},
                     teamsLocked: false,
@@ -39,6 +40,7 @@ function init(wsServer, path) {
                     guessedWord: null,
                     hints: {},
                     bannedHints: {},
+                    unbannedHints: {},
                     rounds: 0,
                     phase: 0,
                     playerTime: 60,
@@ -53,6 +55,7 @@ function init(wsServer, path) {
                     playerLiked: null,
                     playerWin: null,
                     wordGuessed: null,
+                    wordAccepted: null,
                     managedVoice: true,
                     masterKicked: false
                 },
@@ -179,6 +182,7 @@ function init(wsServer, path) {
                     room.teamsLocked = false;
                     room.time = null;
                     room.phase = 0;
+                    room.playerAcceptVotes.clear();
                     clearInterval(interval);
                     update();
                     updatePlayerState();
@@ -192,7 +196,7 @@ function init(wsServer, path) {
                 endRound = () => {
                     room.phase = 4;
                     Object.keys(state.closedHints).forEach((player) => {
-                        if (room.wordGuessed && room.playerHints.has(player)) {
+                        if ((room.wordGuessed || room.wordAccepted) && room.playerHints.has(player)) {
                             changeScore(player, 1);
                         }
                         room.playerHints.add(player);
@@ -200,6 +204,7 @@ function init(wsServer, path) {
                     room.word = state.closedWord;
                     room.hints = state.closedHints;
                     room.readyPlayers.clear();
+                    room.playerAcceptVotes.clear();
                     startTimer();
                     update();
                     updatePlayerState();
@@ -221,6 +226,7 @@ function init(wsServer, path) {
                             if (!initial && !room.masterKicked)
                                 room.master = getNextPlayer();
                             room.masterKicked = false;
+                            room.wordAccepted = null;
                             room.wordGuessed = null;
                             room.playerLiked = null;
                             room.readyPlayers.add(room.master);
@@ -228,7 +234,9 @@ function init(wsServer, path) {
                             room.phase = 1;
                             room.hints = {};
                             room.bannedHints = {};
+                            room.unbannedHints = {};
                             state.closedHints = {};
+                            room.playerAcceptVotes.clear();
                             room.playerHints.clear();
                             room.scoreChanges = {};
                             room.word = state.closedWord = room.guessedWord = null;
@@ -365,7 +373,14 @@ function init(wsServer, path) {
                 },
                 "toggle-hint-ban": (user, hintUser) => {
                     if (room.phase === 2 && room.players.has(user) && room.master !== user && state.closedHints[hintUser]) {
-                        room.bannedHints[hintUser] = !room.bannedHints[hintUser];
+                        if (room.bannedHints[hintUser]) {
+                            room.bannedHints[hintUser] = null;
+                            room.unbannedHints[hintUser] = user;
+                        }
+                        else {
+                            room.bannedHints[hintUser] = user;
+                            room.unbannedHints[hintUser] = null;
+                        }
                         update();
                     }
                 },
@@ -377,6 +392,16 @@ function init(wsServer, path) {
                             room.time = 5000;
                         checkScores();
                         update();
+                    }
+                },
+                "vote-accept": (user) => {
+                    if (room.phase === 4 && room.players.has(user) && !room.wordGuessed) {
+                        room.playerAcceptVotes.add(user);
+                        if (room.playerAcceptVotes.size >= Math.ceil(room.players.size / 2)) {
+                            room.wordAccepted = true;
+                            changeScore(room.master, 2);
+                            endRound();
+                        } else update();
                     }
                 },
                 "guess-word": (user, word) => {
@@ -510,6 +535,7 @@ function init(wsServer, path) {
             this.room.players = new JSONSet(this.room.players);
             this.room.readyPlayers = new JSONSet(this.room.readyPlayers);
             this.room.playerHints = new JSONSet(this.room.playerHints);
+            this.room.playerAcceptVotes = new JSONSet();
             this.room.onlinePlayers.clear();
         }
     }

@@ -77,6 +77,28 @@ class ReadyBtn extends React.Component {
     }
 }
 
+class AcceptBtn extends React.Component {
+
+    voteAccept() {
+        this.props.socket.emit("vote-accept");
+    }
+
+    render() {
+        const {playerAcceptVotes, playerAccepted, players} = this.props;
+        const playerAcceptedText = playerAcceptVotes.length > 0
+            ? `(${playerAcceptVotes.length}/${Math.ceil(players.length / 2)}) `
+            : ``;
+        return (
+            <div
+                className={cs('accept-button', {playerAccepted})}
+                onClick={() => !playerAccepted && this.voteAccept()}
+            >
+                Принять {playerAcceptedText}<i className="material-icons">thumb_up</i>
+            </div>
+        )
+    }
+}
+
 class Title extends React.Component {
     render() {
         return (
@@ -219,11 +241,11 @@ class ClosedWordForm extends React.Component {
 class ClosedWordResult extends React.Component {
     render() {
         const {data} = this.props;
-        const {wordGuessed, guessedWord, word, master, scoreChanges} = data;
+        const {wordGuessed, guessedWord, wordAccepted, word, master, scoreChanges} = data;
 
-        if (wordGuessed) {
+        if (wordGuessed || wordAccepted) {
             return (
-                <ClosedWord text={word}>
+                <ClosedWord text={wordGuessed ? word : guessedWord}>
                     <div className="tl-corner">
                         <div className="score-change">
                             {'+' + scoreChanges[master]}
@@ -253,8 +275,9 @@ class StatusBar extends React.Component {
         const {data, socket, setTime, setPhase2} = this.props;
         const {
             phase, players, playerWin, timed, time, userId,
-            master, readyPlayers, playerNames
+            master, readyPlayers, playerNames, wordGuessed, wordAccepted, playerAcceptVotes
         } = data;
+        const playerAccepted = playerAcceptVotes.includes(userId);
         const isMaster = userId === master;
         const isReady = readyPlayers.includes(userId);
         const isPlayer = players.includes(userId);
@@ -266,6 +289,7 @@ class StatusBar extends React.Component {
         let content
         let subtitle = null
         let hasReady = false
+        let hasAccept = false
         if (phase === 0 && !playerWin) {
             content = <MasterTarget data={data}/>;
             subtitle = enoughText;
@@ -304,6 +328,7 @@ class StatusBar extends React.Component {
             content = <ClosedWordResult data={data}/>;
             subtitle = t("Next round");
             hasReady = isPlayer;
+            hasAccept = !wordGuessed && !wordAccepted;
         } else if (phase === 0 && playerWin) {
             content = <div className="player-win">
                 <Avatar data={data} player={playerWin}/>
@@ -320,6 +345,10 @@ class StatusBar extends React.Component {
                     </div>
                     {subtitle && <div className="subtitle">{subtitle}</div>}
                     {hasReady && <ReadyBtn isReady={isReady} socket={socket}/>}
+                    {hasAccept && <AcceptBtn playerAcceptVotes={playerAcceptVotes}
+                                             playerAccepted={playerAccepted}
+                                             players={players}
+                                             socket={socket}/>}
                     {timed && time !== null && (
                         <ProgressBar data={data} setPhase2={setPhase2} setTime={setTime}/>
                     )}
