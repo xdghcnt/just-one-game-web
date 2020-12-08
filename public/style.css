@@ -733,7 +733,6 @@ input#command-input {
 }
 
 .ban-hint-button, .set-like-button {
-    color: #363739;
     cursor: pointer;
     padding: 5px;
 }
