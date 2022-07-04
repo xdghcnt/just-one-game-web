@@ -1,6 +1,6 @@
 //import React from "react";
 //import ReactDOM from "react-dom"
-//import Avatar from '../avatar.jsx' 
+//import Avatar from '../avatar.jsx'
 
 class ProgressBar extends React.Component {
     componentDidMount() {
@@ -322,7 +322,7 @@ class StatusBar extends React.Component {
                 subtitle = t("Now try guess the original word");
             } else {
                 content = <MasterTarget data={data}/>;
-                subtitle = t('Now ') + playerNames[master] + t(' should guess original word');
+                subtitle = t('Now ') + window.commonRoom.getPlayerName(master) + t(' should guess original word');
             }
         } else if (phase === 4) {
             content = <ClosedWordResult data={data}/>;
@@ -332,7 +332,7 @@ class StatusBar extends React.Component {
         } else if (phase === 0 && playerWin) {
             content = <div className="player-win">
                 <Avatar data={data} player={playerWin}/>
-                <Title text={t('The winner is') + ' ' + playerNames[playerWin] + '!'}/>
+                <Title text={t('The winner is') + ' ' + window.commonRoom.getPlayerName(playerWin) + '!'}/>
             </div>;
             subtitle = enoughText;
         }

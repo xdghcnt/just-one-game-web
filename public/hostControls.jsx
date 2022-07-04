@@ -17,7 +17,7 @@ class HostControls extends React.Component {
     clickChangeName() {
         const { data, socket } = this.props;
         const { playerNames, userId } = data;
-        popup.prompt({content: "New name", value: playerNames[userId] || ""}, (evt) => {
+        popup.prompt({content: "New name", value: window.commonRoom.getPlayerName(userId) || ""}, (evt) => {
             if (evt.proceed && evt.input_value.trim()) {
                 socket.emit("change-name", evt.input_value.trim());
                 localStorage.userName = evt.input_value.trim();

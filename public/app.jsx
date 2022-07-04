@@ -27,15 +27,14 @@ class Game extends React.Component {
     }
 
     componentDidMount() {
-        this.gameName = "just-one";
-        const initArgs = {};
-        if (!parseInt(localStorage.darkThemeDixit))
+        this.gameName = "justOne";
+        const initArgs = CommonRoom.roomInit(this);
+        if (!parseInt(localStorage.darkThemejustOne))
             document.body.classList.add("dark-theme");
-        if (!localStorage.dixitUserId || !localStorage.dixitUserToken) {
+        if (!localStorage.justOneUserId) {
             while (!localStorage.userName)
                 localStorage.userName = prompt("Your name");
-            localStorage.dixitUserId = makeId();
-            localStorage.dixitUserToken = makeId();
+            localStorage.justOneUserId = makeId();
         }
         if (!location.hash)
             history.replaceState(undefined, undefined, location.origin + location.pathname + "#" + makeId());
@@ -47,18 +46,18 @@ class Game extends React.Component {
         }
         initArgs.avatarId = localStorage.avatarId;
         initArgs.roomId = this.roomId = location.hash.substr(1);
-        initArgs.userId = this.userId = localStorage.dixitUserId;
-        initArgs.token = this.userToken = localStorage.dixitUserToken;
+        initArgs.userId = this.userId = localStorage.justOneUserId;
+        initArgs.token = this.userToken = localStorage.userToken;
         initArgs.userName = localStorage.userName;
         initArgs.wssToken = window.wssToken;
-        this.socket = window.socket.of("just-one");
+        this.socket = window.socket.of(location.pathname);
         this.player = {cards: []};
         this.socket.on("state", state => {
             CommonRoom.processCommonRoom(state, this.state, {
                 maxPlayers: "∞",
                 largeImageKey: "just-one",
                 details: "Намёк понял!"
-            });
+            }, this);
             if (this.state.phase && state.phase !== 0 && !parseInt(localStorage.muteSounds)) {
                 if (this.state.master !== this.userId && state.master === this.userId)
                     this.masterSound.play();
@@ -90,19 +89,6 @@ class Game extends React.Component {
         });
         this.socket.on("reload", () => {
             setTimeout(() => window.location.reload(), 3000);
-        });
-        this.socket.on("auth-required", () => {
-            this.setState(Object.assign({}, this.state, {
-                userId: this.userId,
-                authRequired: true
-            }));
-            if (grecaptcha)
-                grecaptcha.render("captcha-container", {
-                    sitekey: "",
-                    callback: (key) => this.socket.emit("auth", key)
-                });
-            else
-                setTimeout(() => window.location.reload(), 3000)
         });
         this.socket.on("prompt-delete-prev-room", (roomList) => {
             if (localStorage.acceptDelete =
@@ -166,6 +152,7 @@ class Game extends React.Component {
                 socket = this.socket;
             return (
                 <div className={cs("game", {timed: this.state.timed})}>
+                    <CommonRoom state={this.state} app={this}/>
                     <div className={
                         cs("game-board", {
                             active: this.state.inited,
@@ -185,14 +172,9 @@ class Game extends React.Component {
                         <div className="main-row" style={this.getOptimalWidth(data)}>
                             <Hints data={data} socket={socket} />
                         </div>
-                        <AvatarSaver socket={socket}
-                            userId={this.userId}
-                            userToken={this.userToken}
-                        />
                         <HostControls data={data} socket={socket}
                             refreshState={() => this.refreshState()}
                         />
-                        <CommonRoom state={this.state} app={this}/>
                     </div>
                 </div>
             );

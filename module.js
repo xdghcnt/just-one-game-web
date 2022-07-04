@@ -17,7 +17,7 @@ function init(wsServer, path) {
 
     class GameState extends wsServer.users.RoomState {
         constructor(hostId, hostData, userRegistry) {
-            super(hostId, hostData, userRegistry);
+            super(hostId, hostData, userRegistry, registry.games.justOne.id, path);
             const
                 room = {
                     ...this.room,
@@ -298,8 +298,13 @@ function init(wsServer, path) {
                     const scores = [...room.players].map(playerId => room.playerScores[playerId] || 0).sort((a, b) => a - b).reverse();
                     if (scores[0] > scores[1]) {
                         const playerLeader = [...room.players].filter(playerId => room.playerScores[playerId] === scores[0])[0];
-                        if (scores[0] >= room.goal)
+                        if (scores[0] >= room.goal) {
                             room.playerWin = playerLeader;
+                            registry.authUsers.processAchievement(userData, registry.achievements.win100JustOne.id);
+                            registry.authUsers.processAchievement(userData, registry.achievements.winGames.id, {
+                                game: registry.games.justOne.id
+                            });
+                        }
                     }
                     if (room.playerWin)
                         endGame();
@@ -410,6 +415,8 @@ function init(wsServer, path) {
                         if (state.closedWord.toLowerCase() === word.toLowerCase().trim()) {
                             room.wordGuessed = true;
                             changeScore(room.master, 2);
+                            if (Object.keys(room.hints).length === 1)
+                                registry.authUsers.processAchievement({room, user: room.master}, registry.achievements.justOneJustOne.id)
                         }
                         room.guessedWord = word;
                         endRound();
@@ -464,11 +471,6 @@ function init(wsServer, path) {
                         "wordsLevel",
                         "goal"].indexOf(type) && (type !== "wordsLevel" || (value <= 4 && value >= 1)) && !isNaN(parseInt(value)))
                         room[type] = parseFloat(value);
-                    update();
-                },
-                "change-name": (user, value) => {
-                    if (value)
-                        room.playerNames[user] = value.substr && value.substr(0, 60);
                     update();
                 },
                 "remove-player": (user, playerId) => {
@@ -576,7 +578,7 @@ function init(wsServer, path) {
         }
     }
 
-    registry.createRoomManager(path, channel, GameState);
+    registry.createRoomManager(path, GameState);
 }
 
 module.exports = init;

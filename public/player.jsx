@@ -6,7 +6,7 @@ class PlayerHostControls extends React.Component {
     removePlayer(id, evt) {
         evt.stopPropagation();
         popup.confirm(
-            {content: `Removing ${this.props.data.playerNames[id]}?`},
+            {content: `Removing ${window.commonRoom.getPlayerName(id)}?`},
             (evt) => evt.proceed && this.props.socket.emit("remove-player", id)
         );
     }
@@ -14,7 +14,7 @@ class PlayerHostControls extends React.Component {
     giveHost(id, evt) {
         evt.stopPropagation();
         popup.confirm(
-            {content: `Give host ${this.props.data.playerNames[id]}?`},
+            {content: `Give host ${window.commonRoom.getPlayerName(id)}?`},
             (evt) => evt.proceed && this.props.socket.emit("give-host", id))
         ;
     }
@@ -51,7 +51,7 @@ class PlayerHostControls extends React.Component {
 class Player extends React.Component {
 
     clickSaveAvatar() {
-        document.getElementById("avatar-input").click();
+        window.commonRoom.handleClickSetImage('avatar');
     }
 
 
@@ -80,7 +80,7 @@ class Player extends React.Component {
                     <div className="player-name-section">
                         <UserAudioMarker user={id} data={data}/>
                         <span className="player-name">
-                            {data.playerNames[id]}
+                            <PlayerName data={data} id={id} />
                         </span>
                         &nbsp;
                         <PlayerHostControls id={id} data={data} socket={socket}/>
@@ -147,7 +147,7 @@ class Spectator extends React.Component {
         return (
             <span className={cs("spectator", {self: id === data.userId})}>
                 &nbsp;{data.voiceEnabled ? <UserAudioMarker user={id} data={data}/> : "●"}&nbsp;
-                <span className="spectator-name">{data.playerNames[id]}</span>
+                <span className="spectator-name"><PlayerName data={data} id={id} /></span>
                 &nbsp;
                 <PlayerHostControls id={id} data={data} socket={socket}/>
             </span>
