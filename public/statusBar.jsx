@@ -275,7 +275,7 @@ class StatusBar extends React.Component {
         const {data, socket, setTime, setPhase2} = this.props;
         const {
             phase, players, playerWin, timed, time, userId,
-            master, readyPlayers, playerNames, wordGuessed, wordAccepted, playerAcceptVotes
+            master, readyPlayers, playerNames, wordGuessed, wordAccepted, playerAcceptVotes, noHints
         } = data;
         const playerAccepted = playerAcceptVotes.includes(userId);
         const isMaster = userId === master;
@@ -328,7 +328,7 @@ class StatusBar extends React.Component {
             content = <ClosedWordResult data={data}/>;
             subtitle = t("Next round");
             hasReady = isPlayer;
-            hasAccept = !wordGuessed && !wordAccepted;
+            hasAccept = !wordGuessed && !wordAccepted && !noHints;
         } else if (phase === 0 && playerWin) {
             content = <div className="player-win">
                 <Avatar data={data} player={playerWin}/>

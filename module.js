@@ -58,7 +58,8 @@ function init(wsServer, path) {
                     wordGuessed: null,
                     wordAccepted: null,
                     managedVoice: true,
-                    masterKicked: false
+                    masterKicked: false,
+                    noHints: false,
                 },
                 state = {
                     closedHints: {},
@@ -221,6 +222,7 @@ function init(wsServer, path) {
                 },
                 startRound = (initial) => {
                     room.readyPlayers.clear();
+                    room.noHints = false;
                     if (room.players.size >= PLAYERS_MIN) {
                         checkScores();
                         if (!room.playerWin || initial) {
@@ -271,9 +273,10 @@ function init(wsServer, path) {
                             room.playerHints.delete(playerId);
                         }
                     });
-                    if (room.playerHints.size === 0)
+                    if (room.playerHints.size === 0) {
+                        room.noHints = true;
                         endRound();
-                    else
+                    } else
                         startTimer();
                     update();
                     updatePlayerState();
@@ -300,6 +303,7 @@ function init(wsServer, path) {
                         const playerLeader = [...room.players].filter(playerId => room.playerScores[playerId] === scores[0])[0];
                         if (scores[0] >= room.goal) {
                             room.playerWin = playerLeader;
+                            const userData = {room, user: room.playerWin};
                             registry.authUsers.processAchievement(userData, registry.achievements.win100JustOne.id);
                             registry.authUsers.processAchievement(userData, registry.achievements.winGames.id, {
                                 game: registry.games.justOne.id
@@ -401,7 +405,7 @@ function init(wsServer, path) {
                     }
                 },
                 "vote-accept": (user) => {
-                    if (room.phase === 4 && room.players.has(user) && !room.wordGuessed) {
+                    if (room.phase === 4 && room.players.has(user) && !room.wordGuessed && !room.noHints) {
                         room.playerAcceptVotes.add(user);
                         if (room.playerAcceptVotes.size >= Math.ceil(room.players.size / 2)) {
                             room.wordAccepted = true;
