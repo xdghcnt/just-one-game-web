@@ -18,6 +18,7 @@ function init(wsServer, path) {
     class GameState extends wsServer.users.RoomState {
         constructor(hostId, hostData, userRegistry) {
             super(hostId, hostData, userRegistry, registry.games.justOne.id, path);
+            const appDir = registry.config.appDir || __dirname;
             const
                 room = {
                     ...this.room,
@@ -62,6 +63,8 @@ function init(wsServer, path) {
                     noHints: false,
                 },
                 state = {
+                    roomWordsList: shuffleArray(defaultWords[room.wordsLevel]),
+                    words: [],
                     closedHints: {},
                     closedWord: null
                 };
@@ -243,7 +246,7 @@ function init(wsServer, path) {
                             room.playerHints.clear();
                             room.scoreChanges = {};
                             room.word = state.closedWord = room.guessedWord = null;
-                            state.closedWord = shuffleArray(defaultWords[room.wordsLevel])[0];
+                            state.closedWord = dealWord();
                             startTimer();
                             update();
                             updatePlayerState();
@@ -253,6 +256,11 @@ function init(wsServer, path) {
                         room.teamsLocked = false;
                         update();
                     }
+                },
+                dealWord = () => {
+                    if (state.words.length === 0)
+                        state.words = [...state.roomWordsList];
+                    return state.words.pop();
                 },
                 startTeamPhase = () => {
                     room.phase = 2;
@@ -313,6 +321,12 @@ function init(wsServer, path) {
                     if (room.playerWin)
                         endGame();
                 },
+                checkCanSetCustom = () => {
+                    if (room.konfaMode || room.authUsers[room.hostId]?.subscribeLevel >= 1)
+                        return true;
+                    send(room.hostId, "subscribe-needed")
+                    return false;
+                },
                 userJoin = (data) => {
                     const user = data.userId;
                     if (!room.playerNames[user])
@@ -350,6 +364,11 @@ function init(wsServer, path) {
                         registry.log(error.message);
                     }
                 };
+            this.unsetCustomWords = () => {
+                this.room.packName = null;
+                send(room.hostId, "subscribe-needed")
+                this.updatePublicState();
+            }
             this.updatePublicState = update;
             this.userJoin = userJoin;
             this.userLeft = userLeft;
@@ -386,8 +405,7 @@ function init(wsServer, path) {
                         if (room.bannedHints[hintUser]) {
                             room.bannedHints[hintUser] = null;
                             room.unbannedHints[hintUser] = user;
-                        }
-                        else {
+                        } else {
                             room.bannedHints[hintUser] = user;
                             room.unbannedHints[hintUser] = null;
                         }
@@ -420,7 +438,10 @@ function init(wsServer, path) {
                             room.wordGuessed = true;
                             changeScore(room.master, 2);
                             if (Object.keys(room.hints).length === 1)
-                                registry.authUsers.processAchievement({room, user: room.master}, registry.achievements.justOneJustOne.id)
+                                registry.authUsers.processAchievement({
+                                    room,
+                                    user: room.master
+                                }, registry.achievements.justOneJustOne.id)
                         }
                         room.guessedWord = word;
                         endRound();
@@ -474,7 +495,13 @@ function init(wsServer, path) {
                         "teamTime",
                         "wordsLevel",
                         "goal"].indexOf(type) && (type !== "wordsLevel" || (value <= 4 && value >= 1)) && !isNaN(parseInt(value)))
-                        room[type] = parseFloat(value);
+                        if (type !== "wordsLevel")
+                            room[type] = parseFloat(value);
+                        else if (!room.packName) {
+                            room.wordsLevel = parseFloat(value);
+                            state.words = [];
+                            this.state.roomWordsList = shuffleArray(defaultWords[room.wordsLevel]);
+                        }
                     update();
                 },
                 "remove-player": (user, playerId) => {
@@ -508,8 +535,47 @@ function init(wsServer, path) {
                         update();
                         updatePlayerState();
                     }
-                }
+                },
+                "setup-words": (user, packName, words) => {
+                    if (checkCanSetCustom() && room.hostId === user && words.length <= 1500) {
+                        if (words) {
+                            state.words = [];
+                            this.state.roomWordsList = shuffleArray(words);
+                            room.packName = packName || "Пользовательский";
+                            update();
+                        }
+                    }
+                },
+                "setup-words-preset": (user, packName) => {
+                    if (checkCanSetCustom() && room.hostId === user) {
+                        fs.readFile(`${appDir}/custom/${packName}.json`, "utf8", (err, str) => {
+                            if (str) {
+                                const data = JSON.parse(str);
+                                state.words = [];
+                                this.state.roomWordsList = shuffleArray(data.wordList);
+                                room.packName = packName;
+                                update();
+                            }
+                            if (err)
+                                send(user, "message", JSON.stringify(err));
+                        });
+                    }
+                },
+                "unset-words": (user) => {
+                    if (room.hostId === user) {
+                        this.room.packName = null;
+                        update();
+                    }
+                },
             };
+        }
+
+        disableKonfaMode() {
+            super.disableKonfaMode();
+            if (!(!this.room.packName || (this.room.authUsers[this.room.hostId]
+                && (this.room.authUsers[this.room.hostId]?.subscribeLevel >= 1)))) {
+                this.unsetCustomWords();
+            }
         }
 
         getPlayerCount() {

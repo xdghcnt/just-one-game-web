@@ -95,6 +95,9 @@ class Game extends React.Component {
                 prompt(`Limit for hosting rooms per IP was reached: ${roomList.join(", ")}. Delete one of rooms?`, roomList[0]))
                 location.reload();
         });
+        this.socket.on("subscribe-needed", () => {
+            window.commonRoom.subscribeOrKonfaPopup('Пользовательские паки доступны ')
+        });
         this.socket.on("ping", (id) => {
             this.socket.emit("pong", id);
         });
@@ -172,7 +175,7 @@ class Game extends React.Component {
                         <div className="main-row" style={this.getOptimalWidth(data)}>
                             <Hints data={data} socket={socket} />
                         </div>
-                        <HostControls data={data} socket={socket}
+                        <HostControls data={data} socket={socket} app={this}
                             refreshState={() => this.refreshState()}
                         />
                     </div>

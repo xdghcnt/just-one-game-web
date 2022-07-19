@@ -941,3 +941,22 @@ input#command-input {
 .ban-hint-button {
     display: flex;
 }
+
+.custom-pack-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 3px;
+}
+
+.unset-pack {
+    font-size: 18px;
+    margin-top: 2px;
+    margin-left: 8px;
+}
+
+.custom-pack-name i {
+    font-size: 14px;
+    margin-right: 8px;
+    vertical-align: text-bottom;
+}
