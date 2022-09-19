@@ -960,3 +960,7 @@ input#command-input {
     margin-right: 8px;
     vertical-align: text-bottom;
 }
+
+.text-color, a {
+    color: #cccaca;
+}

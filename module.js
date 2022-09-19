@@ -24,6 +24,7 @@ function init(wsServer, path) {
                     ...this.room,
                     inited: true,
                     hostId: hostId,
+                    customWordsLimit: 1500,
                     spectators: new JSONSet(),
                     playerNames: {},
                     playerColors: {},
