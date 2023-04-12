@@ -93,16 +93,16 @@ function init(wsServer, path) {
                     [...room.onlinePlayers].forEach(playerId => {
                         if (room.players.has(playerId)) {
                             if (room.master === playerId)
-                                send(playerId, "player-state", {closedHints: null, closedWord: null});
+                                send(playerId, "player-state", { closedHints: null, closedWord: null });
                             else if (room.phase !== 1)
                                 send(playerId, "player-state", state);
                             else
                                 send(playerId, "player-state", {
-                                    closedHints: {[playerId]: state.closedHints[playerId]},
+                                    closedHints: { [playerId]: state.closedHints[playerId] },
                                     closedWord: state.closedWord
                                 });
                         } else {
-                            send(playerId, "player-state", {closedHints: null, closedWord: null});
+                            send(playerId, "player-state", { closedHints: null, closedWord: null });
                         }
                     });
                 },
@@ -182,6 +182,9 @@ function init(wsServer, path) {
                         room.paused = true;
                         room.teamsLocked = false;
                     }
+                },
+                generateCompareString = (word) => {
+                    return word.toLowerCase().trim().replace(/ё/g, 'е');
                 },
                 endGame = () => {
                     room.paused = true;
@@ -312,7 +315,7 @@ function init(wsServer, path) {
                         const playerLeader = [...room.players].filter(playerId => room.playerScores[playerId] === scores[0])[0];
                         if (scores[0] >= room.goal) {
                             room.playerWin = playerLeader;
-                            const userData = {room, user: room.playerWin};
+                            const userData = { room, user: room.playerWin };
                             registry.authUsers.processAchievement(userData, registry.achievements.win100JustOne.id);
                             registry.authUsers.processAchievement(userData, registry.achievements.winGames.id, {
                                 game: registry.games.justOne.id
@@ -435,7 +438,7 @@ function init(wsServer, path) {
                 },
                 "guess-word": (user, word) => {
                     if (room.phase === 3 && room.master === user && word) {
-                        if (state.closedWord.toLowerCase() === word.toLowerCase().trim()) {
+                        if (generateCompareString(state.closedWord) === generateCompareString(word)) {
                             room.wordGuessed = true;
                             changeScore(room.master, 2);
                             if (Object.keys(room.hints).length === 1)
